@@ -13,7 +13,8 @@ var AceTokenizer = acequire("ace/tokenizer").Tokenizer;
 
 var HighlightRules = require("./input_highlight_rules").InputHighlightRules;
 
-acequire("ace/config").setModuleUrl("sense_editor/mode/worker", require("file-loader!./worker.js"));
+acequire("ace/config")
+  .setModuleUrl("sense_editor/mode/worker", require("file-loader?name=[sha512:hash:hex:9999].[ext]!./worker.js"));
 
 export function Mode() {
   this.$tokenizer = new AceTokenizer(new HighlightRules().getRules());
