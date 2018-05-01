@@ -66,7 +66,10 @@ export default class BaseOptimizer {
 
   getConfig() {
     function getStyleLoaders(preProcessors = [], postProcessors = []) {
-      return ExtractTextPlugin.extract({
+      const extractPlugin = new ExtractTextPlugin({
+        filename: 'sha512:contenthash:hex:9999'
+      });
+      return extractPlugin.extract({
         fallback: {
           loader: 'style-loader'
         },
@@ -79,6 +82,7 @@ export default class BaseOptimizer {
               // so we add 1 (for the postcss-loader) to the length of the preProcessors
               // array that we merge into this array
               importLoaders: 1 + preProcessors.length,
+              localIdentName: '[hash:sha512]'
             },
           },
           {
@@ -131,12 +135,14 @@ export default class BaseOptimizer {
         filename: '[name].bundle.js',
         sourceMapFilename: '[file].map',
         publicPath: PUBLIC_PATH_PLACEHOLDER,
-        devtoolModuleFilenameTemplate: '[absolute-resource-path]'
+        devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+        hashFunction: 'sha512'
       },
 
       plugins: [
         new ExtractTextPlugin('[name].style.css', {
-          allChunks: true
+          allChunks: true,
+          filename: 'sha512:contenthash:hex:9999'
         }),
 
         new webpack.optimize.CommonsChunkPlugin({
@@ -186,7 +192,10 @@ export default class BaseOptimizer {
           },
           {
             test: /\.(woff|woff2|ttf|eot|svg|ico)(\?|$)/,
-            loader: 'file-loader'
+            loader: 'file-loader',
+            options: {
+              name: '[sha512:hash:hex:9999].[ext]'
+            }
           },
           {
             resource: [
