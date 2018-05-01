@@ -66,10 +66,7 @@ export default class BaseOptimizer {
 
   getConfig() {
     function getStyleLoaders(preProcessors = [], postProcessors = []) {
-      const extractPlugin = new ExtractTextPlugin({
-        filename: 'sha512:contenthash:hex:9999'
-      });
-      return extractPlugin.extract({
+      return ExtractTextPlugin.extract({
         fallback: {
           loader: 'style-loader'
         },
@@ -142,7 +139,7 @@ export default class BaseOptimizer {
       plugins: [
         new ExtractTextPlugin('[name].style.css', {
           allChunks: true,
-          filename: 'sha512:contenthash:hex:9999'
+          filename: '[name]'
         }),
 
         new webpack.optimize.CommonsChunkPlugin({
@@ -194,7 +191,7 @@ export default class BaseOptimizer {
             test: /\.(woff|woff2|ttf|eot|svg|ico)(\?|$)/,
             loader: 'file-loader',
             options: {
-              name: '[sha512:hash:hex:9999].[ext]'
+              name: '[name].[ext]'
             }
           },
           {
