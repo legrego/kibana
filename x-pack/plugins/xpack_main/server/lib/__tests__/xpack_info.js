@@ -42,7 +42,7 @@ function getMockXPackInfoAPIResponse(license = {}, features = {}) {
 }
 
 function getSignature(object) {
-  return createHash('md5')
+  return createHash('sha512')
     .update(JSON.stringify(object))
     .digest('hex');
 }

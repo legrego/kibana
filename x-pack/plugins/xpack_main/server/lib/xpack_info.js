@@ -194,7 +194,7 @@ export class XPackInfo {
   }
 
   /**
-   * Extracts string md5 hash from the stringified version of license JSON representation.
+   * Extracts string sha512 hash from the stringified version of license JSON representation.
    * @returns {string}
    */
   getSignature() {
@@ -202,7 +202,7 @@ export class XPackInfo {
       return this._cache.signature;
     }
 
-    this._cache.signature = createHash('md5')
+    this._cache.signature = createHash('sha512')
       .update(JSON.stringify(this.toJSON()))
       .digest('hex');
 
