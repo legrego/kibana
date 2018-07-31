@@ -46,7 +46,7 @@ function executeJobFn(server) {
   const getCustomLogo = async ({ job, filteredHeaders }) => {
     const fakeRequest = {
       headers: filteredHeaders,
-      getBasePath: () => serverBasePath
+      getBasePath: () => job.basePath || serverBasePath
     };
 
     const savedObjects = server.savedObjects;

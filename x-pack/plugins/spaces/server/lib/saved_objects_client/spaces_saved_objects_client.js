@@ -24,6 +24,7 @@ export class SpacesSavedObjectsClient {
     this._types = types;
 
     this._spaceId = spacesService.getSpaceId(request);
+    console.log(`Using space id ${this._spaceId} when creating the SavedObjectClient`);
   }
 
   /**
