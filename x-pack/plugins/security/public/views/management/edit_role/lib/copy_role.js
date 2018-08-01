@@ -4,5 +4,8 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-export { ElasticsearchPrivileges } from './es/elasticsearch_privileges';
-export { KibanaPrivileges } from './kibana/kibana_privileges';
+import { cloneDeep } from 'lodash';
+
+export function copyRole(role) {
+  return cloneDeep(role);
+}

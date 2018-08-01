@@ -123,7 +123,8 @@ export function initSpacesApi(server) {
         return reply(wrapError(error));
       }
 
-      return reply(convertSavedObjectToSpace(result));
+      const updatedSpace = convertSavedObjectToSpace(result);
+      return reply(updatedSpace);
     },
     config: {
       validate: {
@@ -143,8 +144,10 @@ export function initSpacesApi(server) {
 
       let result;
 
+      let existingSpace;
+
       try {
-        const existingSpace = await getSpaceById(client, id);
+        existingSpace = await getSpaceById(client, id);
         if (isReservedSpace(existingSpace)) {
           return reply(wrapError(Boom.badRequest('This Space cannot be deleted because it is reserved.')));
         }

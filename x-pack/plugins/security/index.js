@@ -27,7 +27,7 @@ export const security = (kibana) => new kibana.Plugin({
   id: 'security',
   configPrefix: 'xpack.security',
   publicDir: resolve(__dirname, 'public'),
-  require: ['kibana', 'elasticsearch', 'xpack_main'],
+  require: ['kibana', 'elasticsearch', 'xpack_main', 'spaces'],
 
   config(Joi) {
     return Joi.object({
