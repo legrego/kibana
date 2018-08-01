@@ -4,31 +4,22 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
-  EuiCallOut,
-  EuiText,
-  EuiModal,
-  EuiModalHeader,
-  EuiModalHeaderTitle,
-  EuiModalBody,
-  EuiOverlayMask,
   EuiAvatar,
-  EuiSpacer,
+  EuiPopover,
 } from '@elastic/eui';
-import { SpaceCards, SpaceAvatar } from '../components';
-import { Notifier } from 'ui/notify';
+import { SpaceAvatar } from '../components';
+import { SpacesMenu } from './components/spaces_menu';
 
-export class NavControlModal extends Component {
+export class NavControlPopover extends Component {
   state = {
     isOpen: false,
     loading: false,
     activeSpaceExists: true,
     spaces: []
   };
-
-  notifier = new Notifier(`Spaces`);
 
   async loadSpaces() {
     const {
@@ -56,17 +47,6 @@ export class NavControlModal extends Component {
   }
 
   componentDidMount() {
-    const {
-      activeSpace
-    } = this.props;
-
-    if (activeSpace && !activeSpace.valid) {
-      const { error = {} } = activeSpace;
-      if (error.message) {
-        this.notifier.error(error.message);
-      }
-    }
-
     this.loadSpaces();
 
     if (this.props.spacesManager) {
@@ -77,17 +57,22 @@ export class NavControlModal extends Component {
   }
 
   render() {
-    let modal;
-    if (this.state.isOpen) {
-      modal = (
-        <EuiOverlayMask>
-          {this.getActivePortal()}
-        </EuiOverlayMask>
-      );
+    const button = this.getActiveSpaceButton();
+    if (!button) {
+      return null;
     }
 
     return (
-      <div>{this.getActiveSpaceButton()}{modal}</div>
+      <EuiPopover
+        button={button}
+        isOpen={this.state.isOpen}
+        closePopover={this.closePortal}
+        anchorPosition={'rightCenter'}
+        panelPaddingSize="none"
+        ownFocus
+      >
+        <SpacesMenu spaces={this.state.spaces} onSelectSpace={this.onSelectSpace} />
+      </EuiPopover>
     );
   }
 
@@ -121,6 +106,7 @@ export class NavControlModal extends Component {
   };
 
   getButton = (linkIcon, linkTitle) => {
+    // Mimics the current angular-based navigation link
     return (
       <div className="global-nav-link">
         <a className="global-nav-link__anchor" onClick={this.togglePortal}>
@@ -130,36 +116,6 @@ export class NavControlModal extends Component {
       </div>
     );
   };
-
-  getActivePortal = () => {
-    let callout;
-
-    if (!this.state.activeSpaceExists) {
-      callout = (
-        <Fragment>
-          <EuiCallOut title={'Your space is no longer available'}>
-            <EuiText>
-              Please choose a new Space to continue using Kibana
-            </EuiText>
-          </EuiCallOut>
-          <EuiSpacer />
-        </Fragment>
-      );
-
-    }
-
-    return (
-      <EuiModal onClose={this.closePortal} className={'selectSpaceModal'}>
-        <EuiModalHeader>
-          <EuiModalHeaderTitle>Select a space</EuiModalHeaderTitle>
-        </EuiModalHeader>
-        <EuiModalBody>
-          {callout}
-          <SpaceCards spaces={this.state.spaces} onSpaceSelect={this.onSelectSpace} />
-        </EuiModalBody>
-      </EuiModal>
-    );
-  }
 
   togglePortal = () => {
     const isOpening = !this.state.isOpen;
@@ -183,7 +139,7 @@ export class NavControlModal extends Component {
   }
 }
 
-NavControlModal.propTypes = {
+NavControlPopover.propTypes = {
   activeSpace: PropTypes.object,
   spacesManager: PropTypes.object.isRequired
 };
