@@ -49,6 +49,10 @@ export const spaces = (kibana) => new kibana.Plugin({
       };
     },
     replaceInjectedVars: async function (vars, request, server) {
+      if (!request.path.startsWith('/app')) {
+        return vars;
+      }
+
       try {
         vars.activeSpace = {
           valid: true,
