@@ -8,7 +8,10 @@ import { getUrlPrefix } from '../../lib/space_test_utils';
 import { DEFAULT_SPACE_ID } from '../../../../../plugins/spaces/common/constants';
 
 export function createTestSuiteFactory(es, esArchiver, supertest) {
-  const createTest = (description, {
+  const spaceAwareType = 'visualization';
+  const notSpaceAwareType = 'chapo';
+
+  const makeCreateTest = describeFn => (description, {
     auth = {
       username: undefined,
       password: undefined
@@ -16,12 +19,12 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
     spaceId,
     tests,
   }) => {
-    describe(description, () => {
+    describeFn(description, () => {
       before(() => esArchiver.load('saved_objects/spaces'));
       after(() => esArchiver.unload('saved_objects/spaces'));
       it(`should return ${tests.spaceAware.statusCode} for a space-aware type`, async () => {
         await supertest
-          .post(`${getUrlPrefix(spaceId)}/api/saved_objects/visualization`)
+          .post(`${getUrlPrefix(spaceId)}/api/saved_objects/${spaceAwareType}`)
           .auth(auth.username, auth.password)
           .send({
             attributes: {
@@ -34,11 +37,11 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
 
       it(`should return ${tests.notSpaceAware.statusCode} for a non space-aware type`, async () => {
         await supertest
-          .post(`${getUrlPrefix(spaceId)}/api/saved_objects/space`)
+          .post(`${getUrlPrefix(spaceId)}/api/saved_objects/${notSpaceAwareType}`)
           .auth(auth.username, auth.password)
           .send({
             attributes: {
-              name: 'My favorite space',
+              name: `Can't be contained to a space`,
             }
           })
           .expect(tests.notSpaceAware.statusCode)
@@ -48,6 +51,9 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
     });
   };
 
+  const createTest = makeCreateTest(describe);
+  createTest.only = makeCreateTest(describe.only);
+
   const createExpectSpaceAwareResults = (spaceId = DEFAULT_SPACE_ID) => async (resp) => {
     expect(resp.body).to.have.property('id').match(/^[0-9a-f-]{36}$/);
 
@@ -56,7 +62,7 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
 
     expect(resp.body).to.eql({
       id: resp.body.id,
-      type: 'visualization',
+      type: spaceAwareType,
       updated_at: resp.body.updated_at,
       version: 1,
       attributes: {
@@ -68,7 +74,7 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
 
     // query ES directory to ensure namespace was or wasn't specified
     const { _source } = await es.get({
-      id: `${expectedSpacePrefix}visualization:${resp.body.id}`,
+      id: `${expectedSpacePrefix}${spaceAwareType}:${resp.body.id}`,
       type: 'doc',
       index: '.kibana'
     });
@@ -92,17 +98,17 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
 
     expect(resp.body).to.eql({
       id: resp.body.id,
-      type: 'space',
+      type: notSpaceAwareType,
       updated_at: resp.body.updated_at,
       version: 1,
       attributes: {
-        name: 'My favorite space',
+        name: `Can't be contained to a space`,
       }
     });
 
     // query ES directory to ensure namespace wasn't specified
     const { _source } = await es.get({
-      id: `space:${resp.body.id}`,
+      id: `${notSpaceAwareType}:${resp.body.id}`,
       type: 'doc',
       index: '.kibana'
     });
@@ -114,10 +120,11 @@ export function createTestSuiteFactory(es, esArchiver, supertest) {
     expect(actualNamespace).to.eql(undefined);
   };
 
-
   return {
     createTest,
     createExpectSpaceAwareResults,
     expectNotSpaceAwareResults,
+    notSpaceAwareType,
+    spaceAwareType,
   };
 }

@@ -64,6 +64,11 @@ export default function ({ getService }) {
         type: 'visualization',
         updated_at: '2017-09-21T18:51:23.794Z',
         version: 1,
+      }, {
+        id: `8121a00-8efd-21e7-1cb3-34ab96643444`,
+        type: 'chapo',
+        updated_at: '2017-09-21T18:59:16.270Z',
+        version: 1,
       }]
         .sort(sortById);
 

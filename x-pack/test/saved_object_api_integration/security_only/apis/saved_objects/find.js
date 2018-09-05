@@ -35,7 +35,7 @@ export default function ({ getService }) {
       expect(resp.body).to.eql({
         page: 1,
         per_page: 20,
-        total: 4,
+        total: 5,
         saved_objects: [
           {
             id: '91200a00-9efd-11e7-acb3-3dab96693fab',
@@ -65,6 +65,15 @@ export default function ({ getService }) {
             version: 1,
             attributes: resp.body.saved_objects[3].attributes
           },
+          {
+            id: `8121a00-8efd-21e7-1cb3-34ab96643444`,
+            type: 'chapo',
+            updated_at: '2017-09-21T18:59:16.270Z',
+            version: 1,
+            attributes: {
+              'name': 'El Chapo'
+            }
+          }
         ]
       });
     };
