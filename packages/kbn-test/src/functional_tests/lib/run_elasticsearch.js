@@ -25,22 +25,27 @@ import { setupUsers, DEFAULT_SUPERUSER_PASS } from './auth';
 
 export async function runElasticsearch({ config, options }) {
   const { log, esFrom } = options;
-  const isOss = config.get('esTestCluster.license') === 'oss';
+  const securityEnabled = config.get('esTestCluster.securityEnabled');
 
   const cluster = createEsTestCluster({
     port: config.get('servers.elasticsearch.port'),
-    password: !isOss ? DEFAULT_SUPERUSER_PASS : config.get('servers.elasticsearch.password'),
+    password: securityEnabled
+      ? DEFAULT_SUPERUSER_PASS
+      : config.get('servers.elasticsearch.password'),
     license: config.get('esTestCluster.license'),
     log,
     basePath: resolve(KIBANA_ROOT, '.es'),
     esFrom: esFrom || config.get('esTestCluster.from'),
   });
 
-  const esArgs = config.get('esTestCluster.serverArgs');
+  const esArgs = [
+    ...config.get('esTestCluster.serverArgs'),
+    ...(securityEnabled ? ['xpack.security.enabled=true'] : []),
+  ];
 
   await cluster.start(esArgs);
 
-  if (!isOss) {
+  if (securityEnabled) {
     await setupUsers(log, config);
   }
 

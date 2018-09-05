@@ -140,9 +140,9 @@ export default async function ({ readConfigFile }) {
     esTestCluster: {
       license: 'trial',
       from: 'snapshot',
+      securityEnabled: true,
       serverArgs: [
         'xpack.license.self_generated.type=trial',
-        'xpack.security.enabled=true',
       ],
     },
 

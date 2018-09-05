@@ -6,4 +6,4 @@
 
 import { createTestConfig } from '../common/config';
 
-export default createTestConfig('spaces_only', { license: 'basic' });
+export default createTestConfig('spaces_only', { license: 'basic', securityEnabled: false });

@@ -9,7 +9,7 @@ import { resolveKibanaPath } from '@kbn/plugin-helpers';
 import { EsProvider } from './services/es';
 
 
-export function createTestConfig(name, { license = 'trial', disabledPlugins = [] } = {}) {
+export function createTestConfig(name, { license = 'trial', disabledPlugins = [], securityEnabled = true } = {}) {
 
   return async function ({ readConfigFile }) {
 
@@ -48,10 +48,11 @@ export function createTestConfig(name, { license = 'trial', disabledPlugins = []
       },
 
       esTestCluster: {
-        ...config.xpack.api.get('esTestCluster'),
         license,
+        from: 'snapshot',
+        securityEnabled,
         serverArgs: [
-          ...config.xpack.api.get('esTestCluster.serverArgs'),
+          ...license === 'trial' ? ['xpack.license.self_generated.type=trial'] : [],
         ],
       },
 

@@ -6,34 +6,26 @@
 
 import expect from 'expect.js';
 import { AUTHENTICATION } from '../../../common/lib/authentication';
+import { createTestSuiteFactory } from '../../../common/suites/saved_objects/create';
 
 export default function ({ getService }) {
-  const supertest = getService('supertestWithoutAuth');
+  const supertestWithoutAuth = getService('supertestWithoutAuth');
+  const es = getService('es');
   const esArchiver = getService('esArchiver');
 
+  const {
+    createTest,
+    createExpectSpaceAwareResults,
+    expectNotSpaceAwareResults
+  } = createTestSuiteFactory(es, esArchiver, supertestWithoutAuth);
+
   describe('create', () => {
-    const expectResults = (resp) => {
-      expect(resp.body).to.have.property('id').match(/^[0-9a-f-]{36}$/);
 
-      // loose ISO8601 UTC time with milliseconds validation
-      expect(resp.body).to.have.property('updated_at').match(/^[\d-]{10}T[\d:\.]{12}Z$/);
-
-      expect(resp.body).to.eql({
-        id: resp.body.id,
-        type: 'visualization',
-        updated_at: resp.body.updated_at,
-        version: 1,
-        attributes: {
-          title: 'My favorite vis'
-        }
-      });
-    };
-
-    const expectRbacForbidden = resp => {
+    const createExpectRbacForbidden = type => resp => {
       expect(resp.body).to.eql({
         statusCode: 403,
         error: 'Forbidden',
-        message: `Unable to create visualization, missing action:saved_objects/visualization/create`
+        message: `Unable to create ${type}, missing action:saved_objects/${type}/create`
       });
     };
 
@@ -46,32 +38,17 @@ export default function ({ getService }) {
       });
     };
 
-    const createTest = (description, { auth, tests }) => {
-      describe(description, () => {
-        before(() => esArchiver.load('saved_objects/spaces'));
-        after(() => esArchiver.unload('saved_objects/spaces'));
-        it(`should return ${tests.default.statusCode}`, async () => {
-          await supertest
-            .post(`/api/saved_objects/visualization`)
-            .auth(auth.username, auth.password)
-            .send({
-              attributes: {
-                title: 'My favorite vis'
-              }
-            })
-            .expect(tests.default.statusCode)
-            .then(tests.default.response);
-        });
-      });
-    };
-
     createTest(`not a kibana user`, {
       auth: {
         username: AUTHENTICATION.NOT_A_KIBANA_USER.USERNAME,
         password: AUTHENTICATION.NOT_A_KIBANA_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
+          statusCode: 403,
+          response: createExpectLegacyForbidden(AUTHENTICATION.NOT_A_KIBANA_USER.USERNAME),
+        },
+        notSpaceAware: {
           statusCode: 403,
           response: createExpectLegacyForbidden(AUTHENTICATION.NOT_A_KIBANA_USER.USERNAME),
         },
@@ -84,9 +61,13 @@ export default function ({ getService }) {
         password: AUTHENTICATION.SUPERUSER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
           statusCode: 200,
-          response: expectResults,
+          response: createExpectSpaceAwareResults(),
+        },
+        notSpaceAware: {
+          statusCode: 200,
+          response: expectNotSpaceAwareResults(),
         },
       }
     });
@@ -97,9 +78,13 @@ export default function ({ getService }) {
         password: AUTHENTICATION.KIBANA_LEGACY_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
           statusCode: 200,
-          response: expectResults,
+          response: createExpectSpaceAwareResults(),
+        },
+        notSpaceAware: {
+          statusCode: 200,
+          response: expectNotSpaceAwareResults,
         },
       }
     });
@@ -110,7 +95,11 @@ export default function ({ getService }) {
         password: AUTHENTICATION.KIBANA_LEGACY_DASHBOARD_ONLY_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
+          statusCode: 403,
+          response: createExpectLegacyForbidden(AUTHENTICATION.KIBANA_LEGACY_DASHBOARD_ONLY_USER.USERNAME),
+        },
+        notSpaceAware: {
           statusCode: 403,
           response: createExpectLegacyForbidden(AUTHENTICATION.KIBANA_LEGACY_DASHBOARD_ONLY_USER.USERNAME),
         },
@@ -123,9 +112,13 @@ export default function ({ getService }) {
         password: AUTHENTICATION.KIBANA_DUAL_PRIVILEGES_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
           statusCode: 200,
-          response: expectResults,
+          response: createExpectSpaceAwareResults(),
+        },
+        notSpaceAware: {
+          statusCode: 200,
+          response: expectNotSpaceAwareResults,
         },
       }
     });
@@ -136,9 +129,13 @@ export default function ({ getService }) {
         password: AUTHENTICATION.KIBANA_DUAL_PRIVILEGES_DASHBOARD_ONLY_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
           statusCode: 403,
-          response: expectRbacForbidden,
+          response: createExpectRbacForbidden('visualization'),
+        },
+        notSpaceAware: {
+          statusCode: 403,
+          response: createExpectRbacForbidden('space'),
         },
       }
     });
@@ -149,9 +146,13 @@ export default function ({ getService }) {
         password: AUTHENTICATION.KIBANA_RBAC_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
           statusCode: 200,
-          response: expectResults,
+          response: createExpectSpaceAwareResults(),
+        },
+        notSpaceAware: {
+          statusCode: 200,
+          response: expectNotSpaceAwareResults,
         },
       }
     });
@@ -162,9 +163,13 @@ export default function ({ getService }) {
         password: AUTHENTICATION.KIBANA_RBAC_DASHBOARD_ONLY_USER.PASSWORD,
       },
       tests: {
-        default: {
+        spaceAware: {
           statusCode: 403,
-          response: expectRbacForbidden,
+          response: createExpectRbacForbidden('visualization'),
+        },
+        notSpaceAware: {
+          statusCode: 403,
+          response: createExpectRbacForbidden('space'),
         },
       }
     });
