@@ -43,11 +43,6 @@ export function createTestConfig(name, { license = 'trial', disabledPlugins = []
         reportName: 'X-Pack Saved Object API Integration Tests -- ' + name,
       },
 
-      // The saved_objects/basic archives are almost an exact replica of the ones in OSS
-      // with the exception of a bogus "not-a-visualization" type that I added to make sure
-      // the find filtering without a type specified worked correctly. Once we have the ability
-      // to specify more granular access to the objects via the Kibana privileges, this should
-      // no longer be necessary, and it's only required as long as we do read/all privileges.
       esArchiver: {
         directory: path.join(__dirname, 'fixtures', 'es_archiver')
       },
