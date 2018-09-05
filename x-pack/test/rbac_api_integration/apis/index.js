@@ -180,8 +180,6 @@ export default function ({ loadTestFile, getService }) {
       });
 
     });
-    loadTestFile(require.resolve('./es'));
-    loadTestFile(require.resolve('./privileges'));
     loadTestFile(require.resolve('./saved_objects'));
     loadTestFile(require.resolve('./spaces'));
   });
