@@ -5,7 +5,7 @@
  */
 import { mount, shallow } from 'enzyme';
 import React from 'react';
-import { UserProfile } from '../../../../../xpack_main/common/user_profile';
+import { UserProfile } from 'x-pack/common/user_profile';
 import { SpaceAvatar } from '../../../components';
 import { SpacesManager } from '../../../lib';
 import { SpacesNavState } from '../../nav_control';
@@ -19,11 +19,13 @@ const spaces = [
   {
     id: 'default',
     name: 'Default',
+    disabledFeatures: [],
     _reserved: true,
   },
   {
     id: 'custom-1',
     name: 'Custom 1',
+    disabledFeatures: [],
   },
   {
     id: 'custom-2',
@@ -31,6 +33,7 @@ const spaces = [
     initials: 'LG',
     color: '#ABCDEF',
     description: 'my description here',
+    disabledFeatures: [],
   },
 ];
 

@@ -4,4 +4,10 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-export { Capabilities, UserProfile } from './user_profile';
+export async function spacesCapabilityDecorator(
+  server: Record<string, any>,
+  request: Record<string, any>,
+  capabilities: Record<string, boolean>
+) {
+  return capabilities;
+}

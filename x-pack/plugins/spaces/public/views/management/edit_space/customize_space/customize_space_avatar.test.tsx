@@ -19,14 +19,8 @@ test('renders without crashing', () => {
   expect(wrapper).toMatchSnapshot();
 });
 
-test('renders a "customize" link by default', () => {
+test('shows customization fields', () => {
   const wrapper = mount(<CustomizeSpaceAvatar space={space} onChange={jest.fn()} />);
-  expect(wrapper.find(EuiLink)).toHaveLength(1);
-});
-
-test('shows customization fields when the "customize" link is clicked', () => {
-  const wrapper = mount(<CustomizeSpaceAvatar space={space} onChange={jest.fn()} />);
-  wrapper.find(EuiLink).simulate('click');
 
   expect(wrapper.find(EuiLink)).toHaveLength(0);
   expect(wrapper.find(EuiFieldText)).toHaveLength(1);
@@ -44,7 +38,6 @@ test('invokes onChange callback when avatar is customized', () => {
   const changeHandler = jest.fn();
 
   const wrapper = mount(<CustomizeSpaceAvatar space={customizedSpace} onChange={changeHandler} />);
-  wrapper.find(EuiLink).simulate('click');
 
   wrapper
     .find(EuiFieldText)

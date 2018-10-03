@@ -4,16 +4,8 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { IconType } from '@elastic/eui';
 import _ from 'lodash';
-export interface Feature {
-  id: string;
-  name: string;
-  type: 'app' | 'subFeature';
-  validLicenses?: Array<'basic' | 'gold' | 'platinum'>;
-  icon?: IconType;
-  description?: string;
-}
+import { Feature } from 'x-pack/common/feature';
 
 const features: Record<string, Feature> = {};
 
@@ -23,6 +15,10 @@ export function registerFeature(feature: Feature) {
   }
 
   features[feature.id] = feature;
+}
+
+export function unregisterFeature(feature: Feature) {
+  delete features[feature.id];
 }
 
 export function getFeatures(): Feature[] {

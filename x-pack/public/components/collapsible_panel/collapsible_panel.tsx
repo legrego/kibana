@@ -12,12 +12,14 @@ import {
   EuiPanel,
   EuiSpacer,
   EuiTitle,
+  IconType,
 } from '@elastic/eui';
-import React, { Component, Fragment } from 'react';
+import React, { Component, Fragment, ReactNode } from 'react';
 
 interface Props {
-  iconType: string | any;
-  title: string;
+  iconType?: IconType;
+  title: string | ReactNode;
+  initiallyCollapsed?: boolean;
 }
 
 interface State {
@@ -28,6 +30,13 @@ export class CollapsiblePanel extends Component<Props, State> {
   public state = {
     collapsed: false,
   };
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      collapsed: props.initiallyCollapsed || false,
+    };
+  }
 
   public render() {
     return (
@@ -45,11 +54,15 @@ export class CollapsiblePanel extends Component<Props, State> {
         <EuiFlexItem grow={false}>
           <EuiTitle>
             <h2>
-              <EuiIcon
-                type={this.props.iconType}
-                size={'xl'}
-                className={'collapsiblePanel__logo'}
-              />{' '}
+              {this.props.iconType && (
+                <Fragment>
+                  <EuiIcon
+                    type={this.props.iconType}
+                    size={'xl'}
+                    className={'collapsiblePanel__logo'}
+                  />{' '}
+                </Fragment>
+              )}
               {this.props.title}
             </h2>
           </EuiTitle>

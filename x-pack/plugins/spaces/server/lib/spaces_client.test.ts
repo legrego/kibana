@@ -542,12 +542,14 @@ describe('#create', () => {
     description: 'foo-description',
     bar: 'foo-bar',
     _reserved: true,
+    disabledFeatures: [],
   };
 
   const attributes = {
     name: 'foo-name',
     description: 'foo-description',
     bar: 'foo-bar',
+    disabledFeatures: [],
   };
 
   const savedObject = {
@@ -556,6 +558,7 @@ describe('#create', () => {
       name: 'foo-name',
       description: 'foo-description',
       bar: 'foo-bar',
+      disabledFeatures: [],
     },
   };
 
@@ -564,6 +567,7 @@ describe('#create', () => {
     name: 'foo-name',
     description: 'foo-description',
     bar: 'foo-bar',
+    disabledFeatures: [],
   };
 
   describe(`authorization is null`, () => {
@@ -862,12 +866,14 @@ describe('#update', () => {
     description: 'foo-description',
     bar: 'foo-bar',
     _reserved: false,
+    disabledFeatures: [],
   };
 
   const attributes = {
     name: 'foo-name',
     description: 'foo-description',
     bar: 'foo-bar',
+    disabledFeatures: [],
   };
 
   const savedObject = {
@@ -877,6 +883,7 @@ describe('#update', () => {
       description: 'foo-description',
       bar: 'foo-bar',
       _reserved: true,
+      disabledFeatures: [],
     },
   };
 
@@ -886,6 +893,7 @@ describe('#update', () => {
     description: 'foo-description',
     bar: 'foo-bar',
     _reserved: true,
+    disabledFeatures: [],
   };
 
   describe(`authorization is null`, () => {

@@ -6,7 +6,7 @@
 
 import { shallow } from 'enzyme';
 import React from 'react';
-import { UserProfile } from '../../../../../xpack_main/common/user_profile';
+import { UserProfile } from 'x-pack/common/user_profile';
 import { SpacesDescription } from './spaces_description';
 
 describe('SpacesDescription', () => {

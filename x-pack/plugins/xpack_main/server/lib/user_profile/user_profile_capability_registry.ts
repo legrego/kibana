@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { Capabilities } from 'x-pack/plugins/xpack_main/common';
+import { Capabilities } from 'x-pack/common/user_profile';
 import { PriorityCollection } from './priority_collection';
 
 export type CapabilityDecorator = (

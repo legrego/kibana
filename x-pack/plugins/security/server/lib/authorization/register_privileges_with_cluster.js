@@ -30,20 +30,6 @@ const serializePrivileges = (application, privilegeMap) => {
           metadata: {},
         };
         return acc;
-      }, {}),
-      ...Object.entries(privilegeMap.features).reduce((acc, [featureName, featurePrivileges]) => {
-
-        Object.entries(featurePrivileges).forEach(([privilegeName, privilegeActions]) => {
-          const name = `feature_${featureName}_${privilegeName}`;
-          acc[name] = {
-            application,
-            name,
-            actions: privilegeActions,
-            metadata: {},
-          };
-        });
-
-        return acc;
       }, {})
     }
   };

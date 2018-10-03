@@ -4,4 +4,5 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-export { registerFeature, getFeatures } from './feature_registry';
+export { registerFeature, unregisterFeature, getFeatures } from './feature_registry';
+export { registerOssFeatures } from './register_oss_features';

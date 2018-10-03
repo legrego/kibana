@@ -10,8 +10,8 @@ import {
   EuiLink,
 } from '@elastic/eui';
 import React, { ChangeEvent, Component, Fragment } from 'react';
-import { Space } from '../../../../common/model/space';
-import { SpaceValidator } from '../lib';
+import { Space } from '../../../../../common/model/space';
+import { SpaceValidator } from '../../lib';
 
 interface Props {
   space: Partial<Space>;

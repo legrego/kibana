@@ -20,6 +20,7 @@ describe('ConfirmDeleteModal', () => {
     const space = {
       id: 'my-space',
       name: 'My Space',
+      disabledFeatures: [],
     };
 
     const mockHttp = {
@@ -54,6 +55,7 @@ describe('ConfirmDeleteModal', () => {
     const space = {
       id: 'my-space',
       name: 'My Space',
+      disabledFeatures: [],
     };
 
     const mockHttp = {

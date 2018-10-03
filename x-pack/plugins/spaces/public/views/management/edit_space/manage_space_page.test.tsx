@@ -6,7 +6,7 @@
 
 import { mount } from 'enzyme';
 import React from 'react';
-import { UserProfile } from '../../../../../xpack_main/common/user_profile';
+import { UserProfile } from 'x-pack/common/user_profile';
 import { SpacesManager } from '../../../lib';
 import { SpacesNavState } from '../../nav_control';
 import { ManageSpacePage } from './manage_space_page';
@@ -14,6 +14,7 @@ import { ManageSpacePage } from './manage_space_page';
 const space = {
   id: 'my-space',
   name: 'My Space',
+  disabledFeatures: [],
 };
 const buildMockChrome = () => {
   return {
@@ -47,6 +48,7 @@ describe('ManageSpacePage', () => {
         spacesManager={spacesManager}
         userProfile={userProfile}
         spacesNavState={spacesNavState}
+        features={[{ id: 'foo', name: 'foo', type: 'app' }]}
       />
     );
     const nameInput = wrapper.find('input[name="name"]');
@@ -65,6 +67,7 @@ describe('ManageSpacePage', () => {
       description: 'some description',
       color: undefined,
       initials: undefined,
+      disabledFeatures: [],
     });
   });
 
@@ -78,6 +81,7 @@ describe('ManageSpacePage', () => {
             description: 'hey an existing space',
             color: '#aabbcc',
             initials: 'AB',
+            disabledFeatures: [],
           },
         });
       }),
@@ -102,6 +106,7 @@ describe('ManageSpacePage', () => {
         spacesManager={spacesManager}
         userProfile={userProfile}
         spacesNavState={spacesNavState}
+        features={[{ id: 'foo', name: 'foo', type: 'app' }]}
       />
     );
 
@@ -129,6 +134,7 @@ describe('ManageSpacePage', () => {
       description: 'some description',
       color: '#aabbcc',
       initials: 'AB',
+      disabledFeatures: [],
     });
   });
 });

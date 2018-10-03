@@ -123,10 +123,8 @@ exports[`SpacesGridPage renders as expected 1`] = `
     </EuiPageContent>
     <Component
       userProfile={
-        UserProfileClass {
-          "capabilities": Object {
-            "manageSpaces": true,
-          },
+        Object {
+          "manageSpaces": true,
         }
       }
     />
@@ -141,6 +139,7 @@ Array [
     space={
       Object {
         "_reserved": true,
+        "disabledFeatures": Array [],
         "id": "default",
         "name": "Default",
       }
@@ -180,6 +179,7 @@ Array [
     size="s"
     space={
       Object {
+        "disabledFeatures": Array [],
         "id": "custom-1",
         "name": "Custom 1",
       }
@@ -221,6 +221,7 @@ Array [
       Object {
         "color": "#ABCDEF",
         "description": "my description here",
+        "disabledFeatures": Array [],
         "id": "custom-2",
         "initials": "LG",
         "name": "Custom 2",

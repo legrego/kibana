@@ -5,7 +5,7 @@
  */
 import { shallow } from 'enzyme';
 import React from 'react';
-import { UserProfile } from '../../../../../../xpack_main/common/user_profile';
+import { UserProfile } from 'x-pack/common/user_profile';
 import { SecureSpaceMessage } from './secure_space_message';
 
 describe('SecureSpaceMessage', () => {

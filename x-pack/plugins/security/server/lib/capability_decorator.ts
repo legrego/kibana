@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 import _ from 'lodash';
-import { Capabilities } from 'x-pack/plugins/xpack_main/common';
+import { Capabilities } from 'x-pack/common/user_profile';
 
 export async function capabilityDecorator(
   server: Record<string, any>,
@@ -23,16 +23,27 @@ export async function capabilityDecorator(
 
   const { spaces } = server.plugins;
 
-  let result;
+  let result: { privileges: Record<string, boolean> };
   if (spaces) {
     result = await checkPrivileges.atSpace(spaces.getSpaceId(request), privilegedActions);
   } else {
     result = await checkPrivileges.globally(privilegedActions);
   }
 
+  const filteredPrivileges = Object.keys(result.privileges)
+    // exclude privileges which have already been disabled.
+    // security cannot enable a feature that another decorator has explicitly disabled.
+    .filter(key => capabilities[key] !== false)
+    .reduce((acc, key) => {
+      return {
+        ...acc,
+        [key]: result.privileges[key],
+      };
+    }, {});
+
   return {
     ...capabilities,
-    ...result.privileges,
+    ...filteredPrivileges,
   };
 }
 

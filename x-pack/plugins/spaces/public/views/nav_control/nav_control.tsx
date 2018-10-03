@@ -10,8 +10,8 @@ import { SpacesManager } from 'plugins/spaces/lib/spaces_manager';
 import template from 'plugins/spaces/views/nav_control/nav_control.html';
 import { NavControlPopover } from 'plugins/spaces/views/nav_control/nav_control_popover';
 import React from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
 import ReactDOM from 'react-dom';
+import { render, unmountComponentAtNode } from 'react-dom';
 import { NavControlSide } from 'ui/chrome/directives/header_global_nav';
 // @ts-ignore
 import { uiModules } from 'ui/modules';
@@ -19,7 +19,7 @@ import { uiModules } from 'ui/modules';
 import { chromeHeaderNavControlsRegistry } from 'ui/registry/chrome_header_nav_controls';
 // @ts-ignore
 import { chromeNavControlsRegistry } from 'ui/registry/chrome_nav_controls';
-import { UserProfile } from '../../../../xpack_main/common/user_profile';
+import { UserProfile } from 'x-pack/common/user_profile';
 import { Space } from '../../../common/model/space';
 import { SpacesGlobalNavButton } from './components/spaces_global_nav_button';
 import { SpacesHeaderNavButton } from './components/spaces_header_nav_button';

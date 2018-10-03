@@ -6,7 +6,7 @@
 
 import { shallow } from 'enzyme';
 import React from 'react';
-import { SpaceValidator } from '../lib';
+import { SpaceValidator } from '../../lib';
 import { SpaceIdentifier } from './space_identifier';
 
 test('renders without crashing', () => {
@@ -17,7 +17,7 @@ test('renders without crashing', () => {
     },
     editable: true,
     onChange: jest.fn(),
-    validator: new SpaceValidator(),
+    validator: new SpaceValidator({ features: [] }),
   };
   const wrapper = shallow(<SpaceIdentifier {...props} />);
   expect(wrapper).toMatchSnapshot();

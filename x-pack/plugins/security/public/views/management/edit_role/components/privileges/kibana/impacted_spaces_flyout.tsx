@@ -15,9 +15,9 @@ import {
 import React, { Component, Fragment } from 'react';
 import { PrivilegeSpaceTable } from './privilege_space_table';
 
+import { UserProfile } from 'x-pack/common/user_profile';
 import { Space } from '../../../../../../../../spaces/common/model/space';
 import { ManageSpacesButton } from '../../../../../../../../spaces/public/components';
-import { UserProfile } from '../../../../../../../../xpack_main/common/user_profile';
 import { KibanaPrivilege } from '../../../../../../../common/model/kibana_privilege';
 import { Role } from '../../../../../../../common/model/role';
 import { NO_PRIVILEGE_VALUE } from '../../../lib/constants';
