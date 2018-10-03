@@ -4,6 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
+import Boom from 'boom';
 import { resolve } from 'path';
 import { getUserProvider } from './server/lib/get_user';
 import { initAuthenticateApi } from './server/routes/api/v1/authenticate';
@@ -56,6 +57,10 @@ export const security = (kibana) => new kibana.Plugin({
   uiExports: {
     chromeNavControls: ['plugins/security/views/nav_control'],
     managementSections: ['plugins/security/views/management'],
+    userProfile: {
+      capabilityProviders: [],
+      capabilityDecorators: [resolve(__dirname, './server/lib/capability_decorator')],
+    },
     apps: [{
       id: 'login',
       title: 'Login',
@@ -175,6 +180,42 @@ export const security = (kibana) => new kibana.Plugin({
           layout,
         }
       };
+    });
+
+
+    server.ext('onPostAuth', async function (req, reply) {
+      const path = req.path;
+
+      // Enforce app restrictions
+      if (path.startsWith('/app/')) {
+        const appId = path.split('/', 3)[2];
+        const userProfile = await req.getUserProfile();
+        if (!userProfile.canAccessFeature(appId)) {
+          return reply(Boom.notFound());
+        }
+      }
+
+      // Enforce API restrictions for associated applications
+      if (path.startsWith('/api/')) {
+        const { tags = [] } = req.route.settings;
+
+        const actionTags = tags.filter(tag => tag.startsWith('access:'));
+
+        if (actionTags.length > 0) {
+          const feature = path.split('/', 3)[2];
+          const actions = actionTags.map(tag => `api:${feature}/${tag.split(':', 2)[1]}`);
+
+          const { checkPrivilegesWithRequest } = server.plugins.security.authorization;
+          const checkPrivileges = checkPrivilegesWithRequest(req);
+          const canExecute = await checkPrivileges.globally(actions);
+
+          if (!canExecute.hasAllRequested) {
+            return reply(Boom.notFound());
+          }
+        }
+      }
+
+      return reply.continue();
     });
   }
 });
