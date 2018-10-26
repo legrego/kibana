@@ -38,6 +38,7 @@ import { initChromeNavApi } from './api/nav';
 import templateApi from './api/template';
 import themeApi from './api/theme';
 import translationsApi from './api/translations';
+import { initConfig } from './api/config';
 import { initChromeXsrfApi } from './api/xsrf';
 import { initUiSettingsApi } from './api/ui_settings';
 import { initLoadingCountApi } from './api/loading_count';
@@ -61,6 +62,7 @@ const internals = _.defaults(
   }
 );
 
+initConfig();
 initUiSettingsApi(chrome);
 initSavedObjectClient(chrome);
 appsApi(chrome, internals);
