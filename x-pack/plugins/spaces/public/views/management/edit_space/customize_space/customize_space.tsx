@@ -12,8 +12,10 @@ import {
   EuiFlexItem,
   EuiFormRow,
   EuiPanel,
+  EuiPopover,
   EuiSpacer,
   EuiText,
+  EuiTextArea,
 } from '@elastic/eui';
 import React, { ChangeEvent, Component, Fragment } from 'react';
 import { isReservedSpace } from 'x-pack/plugins/spaces/common';
@@ -39,30 +41,41 @@ export class CustomizeSpace extends Component<Props, {}> {
         <EuiDescribedFormGroup
           title={<h3>Customize your space</h3>}
           description={this.getPanelDescription()}
+          fullWidth
         >
-          <EuiFormRow label="Name" {...validator.validateSpaceName(this.props.space)} fullWidth>
-            <EuiFieldText
-              name="name"
-              placeholder={'Awesome space'}
-              value={name}
-              onChange={this.onNameChange}
-              fullWidth
-            />
-          </EuiFormRow>
+          <EuiFlexGroup responsive={false}>
+            <EuiFlexItem>
+              <EuiFormRow label="Name" {...validator.validateSpaceName(this.props.space)} fullWidth>
+                <EuiFieldText
+                  name="name"
+                  placeholder={'Awesome space'}
+                  value={name}
+                  onChange={this.onNameChange}
+                  fullWidth
+                />
+              </EuiFormRow>
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiFormRow label="Avatar">
+                <EuiPopover
+                  id="customizeAvatarPopover"
+                  button={
+                    <button title="Click to customize">
+                      <SpaceAvatar space={this.props.space} size="l" />
+                    </button>
+                  }
+                  // closePopover={() => {}}
+                  // isOpen={!!name}
+                >
+                  <div style={{ maxWidth: 240 }}>
+                    <CustomizeSpaceAvatar space={this.props.space} onChange={this.onAvatarChange} />
+                  </div>
+                </EuiPopover>
+              </EuiFormRow>
+            </EuiFlexItem>
+          </EuiFlexGroup>
 
-          {name && (
-            <Fragment>
-              <EuiFlexGroup responsive={false}>
-                <EuiFlexItem grow={false}>
-                  <EuiFormRow label="Avatar">
-                    <SpaceAvatar space={this.props.space} size="l" />
-                  </EuiFormRow>
-                </EuiFlexItem>
-                <CustomizeSpaceAvatar space={this.props.space} onChange={this.onAvatarChange} />
-              </EuiFlexGroup>
-              <EuiSpacer />
-            </Fragment>
-          )}
+          <EuiSpacer />
 
           {this.props.space && isReservedSpace(this.props.space) ? null : (
             <Fragment>
@@ -77,15 +90,16 @@ export class CustomizeSpace extends Component<Props, {}> {
 
           <EuiFormRow
             label="Description (optional)"
+            helpText="Displayed alongside the space avatar on the space selection screen"
             {...validator.validateSpaceDescription(this.props.space)}
             fullWidth
           >
-            <EuiFieldText
+            <EuiTextArea
               name="description"
-              placeholder={'This is where the magic happens'}
               value={description}
               onChange={this.onDescriptionChange}
               fullWidth
+              rows={2}
             />
           </EuiFormRow>
         </EuiDescribedFormGroup>
@@ -126,7 +140,7 @@ export class CustomizeSpace extends Component<Props, {}> {
     });
   };
 
-  public onDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
+  public onDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     this.props.onChange({
       ...this.props.space,
       description: e.target.value,

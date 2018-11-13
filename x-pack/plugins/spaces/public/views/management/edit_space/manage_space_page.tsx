@@ -154,7 +154,7 @@ export class ManageSpacePage extends Component<Props, State> {
           onChange={this.onSpaceChange}
         />
 
-        <EuiHorizontalRule />
+        <EuiSpacer />
 
         {this.getFormButtons()}
       </Fragment>
@@ -180,7 +180,12 @@ export class ManageSpacePage extends Component<Props, State> {
 
   public maybeGetSecureSpacesMessage = () => {
     if (this.editingExistingSpace()) {
-      return <SecureSpaceMessage userProfile={this.props.userProfile} />;
+      return (
+        <Fragment>
+          <EuiHorizontalRule />
+          <SecureSpaceMessage userProfile={this.props.userProfile} />
+        </Fragment>
+      );
     }
     return null;
   };

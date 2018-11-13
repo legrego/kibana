@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { EuiLink, EuiSpacer, EuiText } from '@elastic/eui';
+import { EuiLink, EuiText } from '@elastic/eui';
 import React, { Fragment } from 'react';
 import { UserProfile } from 'x-pack/common/user_profile';
 
@@ -16,7 +16,6 @@ export const SecureSpaceMessage = (props: Props) => {
   if (props.userProfile.hasCapability('manageSecurity')) {
     return (
       <Fragment>
-        <EuiSpacer />
         <EuiText className="eui-textCenter">
           <p>
             Want to assign a role to a space? Go to Management and select{' '}

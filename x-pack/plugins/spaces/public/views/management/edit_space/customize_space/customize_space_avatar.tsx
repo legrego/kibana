@@ -37,23 +37,24 @@ export class CustomizeSpaceAvatar extends Component<Props, State> {
 
     return (
       <Fragment>
-        <EuiFlexItem grow={false}>
-          <EuiFormRow label={'Initials (2 max)'}>
-            <EuiFieldText
-              inputRef={this.initialsInputRef}
-              name="spaceInitials"
-              // allows input to be cleared or otherwise invalidated while user is editing the initials,
-              // without defaulting to the derived initials provided by `getSpaceInitials`
-              value={initialsHasFocus ? pendingInitials || '' : getSpaceInitials(space)}
-              onChange={this.onInitialsChange}
-            />
-          </EuiFormRow>
-        </EuiFlexItem>
-        <EuiFlexItem grow={true}>
-          <EuiFormRow label={'Color'}>
-            <EuiColorPicker color={getSpaceColor(space)} onChange={this.onColorChange} />
-          </EuiFormRow>
-        </EuiFlexItem>
+        <EuiFormRow label={'Initials (2 max)'}>
+          <EuiFieldText
+            inputRef={this.initialsInputRef}
+            name="spaceInitials"
+            // allows input to be cleared or otherwise invalidated while user is editing the initials,
+            // without defaulting to the derived initials provided by `getSpaceInitials`
+            value={initialsHasFocus ? pendingInitials || '' : getSpaceInitials(space)}
+            onChange={this.onInitialsChange}
+            disabled={!space.name}
+          />
+        </EuiFormRow>
+        <EuiFormRow label={'Color'}>
+          <EuiColorPicker
+            disabled={!space.name}
+            color={getSpaceColor(space)}
+            onChange={this.onColorChange}
+          />
+        </EuiFormRow>
       </Fragment>
     );
   }

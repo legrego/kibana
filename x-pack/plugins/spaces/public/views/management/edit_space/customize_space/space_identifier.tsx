@@ -44,7 +44,7 @@ export class SpaceIdentifier extends Component<Props, State> {
       <Fragment>
         <EuiFormRow
           label={this.getLabel()}
-          helpText={this.getHelpText()}
+          helpText={this.getHelpText(id)}
           {...this.props.validator.validateURLIdentifier(this.props.space)}
           fullWidth
         >
@@ -53,7 +53,7 @@ export class SpaceIdentifier extends Component<Props, State> {
             placeholder={
               this.state.editing || !this.props.editable
                 ? undefined
-                : 'The URL identifier is generated from the space name.'
+                : 'awesome-space'
             }
             value={id}
             onChange={this.onChange}
@@ -74,8 +74,8 @@ export class SpaceIdentifier extends Component<Props, State> {
     return (<p>URL identifier <EuiLink onClick={this.onEditClick}>{editLinkText}</EuiLink></p>);
   };
 
-  public getHelpText = () => {
-    return (<p>If the identifier is <strong>engineering</strong>, the Kibana URL is <br /> https://my-kibana.example<strong>/s/engineering/</strong>app/kibana.</p>);
+  public getHelpText = (identifier: string) => {
+    return (<p>Example: https://my-kibana.example<strong>/s/{identifier || 'awesome-space'}/</strong>app/kibana</p>);
   };
 
   public onEditClick = () => {
