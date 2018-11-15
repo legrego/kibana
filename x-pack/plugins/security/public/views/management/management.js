@@ -10,10 +10,11 @@ import 'plugins/security/views/management/users';
 import 'plugins/security/views/management/roles';
 import 'plugins/security/views/management/edit_user';
 import 'plugins/security/views/management/edit_role/index';
+import 'plugins/security/views/management/manage_tokens/index';
 import routes from 'ui/routes';
 import { XPackInfoProvider } from 'plugins/xpack_main/services/xpack_info';
 import '../../services/shield_user';
-import { ROLES_PATH, USERS_PATH } from './management_urls';
+import { ROLES_PATH, USERS_PATH, MANAGE_TOKENS_PATH } from './management_urls';
 
 import { management } from 'ui/management';
 
@@ -52,6 +53,15 @@ routes.defaults(/\/management/, {
             order: 20,
             display: 'Roles',
             url: `#${ROLES_PATH}`,
+          });
+        }
+
+        if (!security.hasItem('tokens')) {
+          security.register('tokens', {
+            name: 'securityTokensLink',
+            order: 20,
+            display: 'Tokens',
+            url: `#${MANAGE_TOKENS_PATH}`,
           });
         }
       }
