@@ -205,6 +205,7 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
         onClick={this.addSpacePrivilege}
         iconType={'plusInCircleFilled'}
         data-test-subj={'addSpacePrivilegeButton'}
+        isDisabled={!hasAvailableSpaces}
       >
         Add space privilege
       </EuiButton>
@@ -223,13 +224,9 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
       />
     );
 
-    if (!hasAvailableSpaces) {
-      return viewMatrixButton;
-    }
-
     return (
       <EuiFlexGroup justifyContent="spaceBetween">
-        {hasAvailableSpaces && <EuiFlexItem grow={false}>{addPrivilegeButton}</EuiFlexItem>}
+        <EuiFlexItem grow={false}>{addPrivilegeButton}</EuiFlexItem>
         {hasPrivilegesAssigned && <EuiFlexItem grow={false}>{viewMatrixButton}</EuiFlexItem>}
       </EuiFlexGroup>
     );
