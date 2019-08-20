@@ -19,6 +19,10 @@
       "color": {
         "type": "keyword"
       },
+      "imageUrl": {
+        "type": "keyword",
+        "ignore_above": 2048
+      },
       "disabledFeatures": {
         "type": "keyword"
       },

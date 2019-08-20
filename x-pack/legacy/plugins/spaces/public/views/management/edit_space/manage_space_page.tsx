@@ -333,6 +333,7 @@ class ManageSpacePageUI extends Component<Props, State> {
       description,
       initials,
       color,
+      imageUrl,
       disabledFeatures = [],
     } = this.state.space;
 
@@ -342,6 +343,7 @@ class ManageSpacePageUI extends Component<Props, State> {
       description,
       initials,
       color,
+      imageUrl,
       disabledFeatures,
     };
 

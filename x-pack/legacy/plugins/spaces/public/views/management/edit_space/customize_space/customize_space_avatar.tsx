@@ -4,9 +4,21 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { EuiColorPicker, EuiFieldText, EuiFlexItem, EuiFormRow, isValidHex } from '@elastic/eui';
+import {
+  EuiColorPicker,
+  EuiFieldText,
+  EuiFlexItem,
+  EuiFormRow,
+  isValidHex,
+  EuiComboBox,
+  // @ts-ignore
+  EuiFilePicker,
+  EuiComboBoxOptionProps,
+  EuiHorizontalRule,
+} from '@elastic/eui';
 import { InjectedIntl, injectI18n } from '@kbn/i18n/react';
-import React, { ChangeEvent, Component } from 'react';
+import React, { ChangeEvent, Component, Fragment } from 'react';
+import { imageTypes, encode } from '../../../../lib/dataurl';
 import { MAX_SPACE_INITIALS } from '../../../../../common/constants';
 import { Space } from '../../../../../common/model/space';
 import { getSpaceColor, getSpaceInitials } from '../../../../../common/space_attributes';
@@ -20,6 +32,7 @@ interface Props {
 interface State {
   initialsHasFocus: boolean;
   pendingInitials?: string | null;
+  displayType: 'initials' | 'image';
 }
 
 class CustomizeSpaceAvatarUI extends Component<Props, State> {
@@ -29,54 +42,117 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
     super(props);
     this.state = {
       initialsHasFocus: false,
+      displayType: props.space.imageUrl ? 'image' : 'initials',
     };
   }
 
   public render() {
-    const { space, intl } = this.props;
+    const { intl } = this.props;
 
-    const { initialsHasFocus, pendingInitials } = this.state;
+    const { displayType } = this.state;
 
-    const spaceColor = getSpaceColor(space);
-    const isInvalidSpaceColor = !isValidHex(spaceColor) && spaceColor !== '';
+    const displayTypeOptions = [
+      { id: 'initials', label: 'Color & Initials' },
+      { id: 'image', label: 'Image' },
+    ];
+
+    const selectedOption = displayTypeOptions.filter(option => option.id === displayType);
 
     return (
       <form onSubmit={() => false}>
         <EuiFlexItem grow={false}>
           <EuiFormRow
             label={intl.formatMessage({
-              id: 'xpack.spaces.management.customizeSpaceAvatar.initialItemsFormRowLabel',
-              defaultMessage: 'Initials (2 max)',
+              id: 'xpack.spaces.management.customizeSpaceAvatar.displayTypeFormRowLabel',
+              defaultMessage: 'Display type',
             })}
           >
-            <EuiFieldText
-              inputRef={this.initialsInputRef}
-              name="spaceInitials"
-              // allows input to be cleared or otherwise invalidated while user is editing the initials,
-              // without defaulting to the derived initials provided by `getSpaceInitials`
-              value={initialsHasFocus ? pendingInitials || '' : getSpaceInitials(space)}
-              onChange={this.onInitialsChange}
+            <EuiComboBox
+              options={displayTypeOptions}
+              singleSelection={{ asPlainText: true }}
+              selectedOptions={selectedOption}
+              onChange={this.onDisplayTypeChange}
+              isClearable={false}
             />
           </EuiFormRow>
         </EuiFlexItem>
-        <EuiFlexItem grow={true}>
-          <EuiFormRow
-            label={intl.formatMessage({
-              id: 'xpack.spaces.management.customizeSpaceAvatar.colorFormRowLabel',
-              defaultMessage: 'Color',
-            })}
-            isInvalid={isInvalidSpaceColor}
-          >
-            <EuiColorPicker
-              color={spaceColor}
-              onChange={this.onColorChange}
-              isInvalid={isInvalidSpaceColor}
-            />
-          </EuiFormRow>
-        </EuiFlexItem>
+        <EuiHorizontalRule />
+        {this.getCustomizeOptions()}
       </form>
     );
   }
+
+  public onDisplayTypeChange = (selectedOptions: EuiComboBoxOptionProps[]) => {
+    this.setState({
+      displayType: (selectedOptions[0].id as State['displayType']) || 'initials',
+    });
+  };
+
+  public getCustomizeOptions = () => {
+    const { intl, space } = this.props;
+    const { initialsHasFocus, pendingInitials, displayType } = this.state;
+    const spaceColor = getSpaceColor(space);
+    const isInvalidSpaceColor = !isValidHex(spaceColor) && spaceColor !== '';
+
+    switch (displayType) {
+      case 'initials':
+        return (
+          <Fragment>
+            <EuiFlexItem grow={false}>
+              <EuiFormRow
+                label={intl.formatMessage({
+                  id: 'xpack.spaces.management.customizeSpaceAvatar.initialItemsFormRowLabel',
+                  defaultMessage: 'Initials (2 max)',
+                })}
+              >
+                <EuiFieldText
+                  inputRef={this.initialsInputRef}
+                  name="spaceInitials"
+                  // allows input to be cleared or otherwise invalidated while user is editing the initials,
+                  // without defaulting to the derived initials provided by `getSpaceInitials`
+                  value={initialsHasFocus ? pendingInitials || '' : getSpaceInitials(space)}
+                  onChange={this.onInitialsChange}
+                />
+              </EuiFormRow>
+            </EuiFlexItem>
+            <EuiFlexItem grow={true}>
+              <EuiFormRow
+                label={intl.formatMessage({
+                  id: 'xpack.spaces.management.customizeSpaceAvatar.colorFormRowLabel',
+                  defaultMessage: 'Color',
+                })}
+                isInvalid={isInvalidSpaceColor}
+              >
+                <EuiColorPicker
+                  color={spaceColor}
+                  onChange={this.onColorChange}
+                  isInvalid={isInvalidSpaceColor}
+                />
+              </EuiFormRow>
+            </EuiFlexItem>
+          </Fragment>
+        );
+      case 'image':
+        return (
+          <EuiFlexItem grow={false}>
+            <EuiFormRow
+              label={intl.formatMessage({
+                id: 'xpack.spaces.management.customizeSpaceAvatar.imageFormRowLabel',
+                defaultMessage: 'Image',
+              })}
+            >
+              <EuiFilePicker
+                name="space-image"
+                onChange={this.onSpaceImageChange}
+                accept={imageTypes}
+              />
+            </EuiFormRow>
+          </EuiFlexItem>
+        );
+      default:
+        throw new Error(`Unsupported displayType: ${displayType}`);
+    }
+  };
 
   public initialsInputRef = (ref: HTMLInputElement) => {
     if (ref) {
@@ -124,6 +200,22 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
       ...this.props.space,
       color,
     });
+  };
+
+  public onSpaceImageChange = async (files: FileList) => {
+    if (files.length > 0) {
+      const file = files[0];
+      const imageUrl = await encode(file, file.type);
+      this.props.onChange({
+        ...this.props.space,
+        imageUrl,
+      });
+    } else {
+      this.props.onChange({
+        ...this.props.space,
+        imageUrl: '',
+      });
+    }
   };
 }
 

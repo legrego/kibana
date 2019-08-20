@@ -37,6 +37,7 @@ export const SpaceAvatar: SFC<Props> = (props: Props) => {
       initialsLength={MAX_SPACE_INITIALS}
       initials={getSpaceInitials(space)}
       color={isValidHex(spaceColor) ? spaceColor : ''}
+      imageUrl={space.imageUrl}
       {...rest}
     />
   );
