@@ -15,6 +15,10 @@ import {
   EuiFilePicker,
   EuiComboBoxOptionProps,
   EuiHorizontalRule,
+  EuiText,
+  // @ts-ignore
+  EuiImage,
+  EuiButtonEmpty,
 } from '@elastic/eui';
 import { InjectedIntl, injectI18n } from '@kbn/i18n/react';
 import React, { ChangeEvent, Component, Fragment } from 'react';
@@ -141,11 +145,42 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
                 defaultMessage: 'Image',
               })}
             >
-              <EuiFilePicker
-                name="space-image"
-                onChange={this.onSpaceImageChange}
-                accept={imageTypes}
-              />
+              <Fragment>
+                <EuiText>
+                  <p>
+                    {intl.formatMessage({
+                      id: 'xpack.spaces.management.customizeSpaceAvatar.imageGuidelines',
+                      defaultMessage:
+                        'For best results, choose a square image between 50x50 and 100x100',
+                    })}
+                  </p>
+                </EuiText>
+                {space.imageUrl && (
+                  <Fragment>
+                    <EuiImage
+                      size="m"
+                      alt={intl.formatMessage({
+                        id: 'xpack.spaces.management.customizeSpaceAvatar.imagePreviewAltText',
+                        defaultMessage: 'A preview of the selected image',
+                      })}
+                      url={space.imageUrl}
+                    />
+                    <EuiButtonEmpty onClick={this.clearImage}>
+                      {intl.formatMessage({
+                        id: 'xpack.spaces.management.customizeSpaceAvatar.removeImageButton',
+                        defaultMessage: 'Remove image',
+                      })}
+                    </EuiButtonEmpty>
+                  </Fragment>
+                )}
+                {!space.imageUrl && (
+                  <EuiFilePicker
+                    name="space-image"
+                    onChange={this.onSpaceImageChange}
+                    accept={imageTypes}
+                  />
+                )}
+              </Fragment>
             </EuiFormRow>
           </EuiFlexItem>
         );
@@ -202,19 +237,29 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
     });
   };
 
+  public clearImage = () => {
+    const space = { ...this.props.space };
+    delete space.imageUrl;
+    this.props.onChange(space);
+  };
+
   public onSpaceImageChange = async (files: FileList) => {
     if (files.length > 0) {
       const file = files[0];
-      const imageUrl = await encode(file, file.type);
-      this.props.onChange({
-        ...this.props.space,
-        imageUrl,
-      });
+      if (!imageTypes.includes(file.type)) {
+        console.error('TODO: invalid file format');
+      } else if (file.size > 50000) {
+        console.error('TODO: file greater than 50kb');
+      } else {
+        const imageUrl = await encode(file, file.type);
+        console.log(file, imageUrl);
+        this.props.onChange({
+          ...this.props.space,
+          imageUrl,
+        });
+      }
     } else {
-      this.props.onChange({
-        ...this.props.space,
-        imageUrl: '',
-      });
+      this.clearImage();
     }
   };
 }
