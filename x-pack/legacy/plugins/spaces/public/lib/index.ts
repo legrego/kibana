@@ -5,3 +5,4 @@
  */
 
 export { SpacesManager } from './spaces_manager';
+export { resizeImage } from './resize_image';

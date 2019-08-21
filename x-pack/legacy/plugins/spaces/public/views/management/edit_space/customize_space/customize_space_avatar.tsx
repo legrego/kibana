@@ -16,12 +16,13 @@ import {
   EuiComboBoxOptionProps,
   EuiHorizontalRule,
   EuiText,
-  // @ts-ignore
-  EuiImage,
   EuiButtonEmpty,
+  EuiAvatar,
+  EuiSpacer,
 } from '@elastic/eui';
 import { InjectedIntl, injectI18n } from '@kbn/i18n/react';
 import React, { ChangeEvent, Component, Fragment } from 'react';
+import { resizeImage } from '../../../../lib';
 import { imageTypes, encode } from '../../../../lib/dataurl';
 import { MAX_SPACE_INITIALS } from '../../../../../common/constants';
 import { Space } from '../../../../../common/model/space';
@@ -37,6 +38,7 @@ interface State {
   initialsHasFocus: boolean;
   pendingInitials?: string | null;
   displayType: 'initials' | 'image';
+  invalidImageType: boolean;
 }
 
 class CustomizeSpaceAvatarUI extends Component<Props, State> {
@@ -47,6 +49,7 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
     this.state = {
       initialsHasFocus: false,
       displayType: props.space.imageUrl ? 'image' : 'initials',
+      invalidImageType: false,
     };
   }
 
@@ -87,8 +90,12 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
   }
 
   public onDisplayTypeChange = (selectedOptions: EuiComboBoxOptionProps[]) => {
+    const displayType = (selectedOptions[0].id as State['displayType']) || 'initials';
+    if (displayType !== 'image') {
+      this.clearImage();
+    }
     this.setState({
-      displayType: (selectedOptions[0].id as State['displayType']) || 'initials',
+      displayType,
     });
   };
 
@@ -144,6 +151,8 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
                 id: 'xpack.spaces.management.customizeSpaceAvatar.imageFormRowLabel',
                 defaultMessage: 'Image',
               })}
+              isInvalid={this.state.invalidImageType}
+              error={this.state.invalidImageType ? 'Invalid image type' : false}
             >
               <Fragment>
                 <EuiText>
@@ -156,22 +165,25 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
                   </p>
                 </EuiText>
                 {space.imageUrl && (
-                  <Fragment>
-                    <EuiImage
-                      size="m"
-                      alt={intl.formatMessage({
-                        id: 'xpack.spaces.management.customizeSpaceAvatar.imagePreviewAltText',
-                        defaultMessage: 'A preview of the selected image',
+                  <div className="eui-textCenter">
+                    <EuiAvatar
+                      type="space"
+                      imageUrl={space.imageUrl}
+                      size="l"
+                      name={intl.formatMessage({
+                        id: 'xpack.spaces.management.customizeSpaceAvatar.imagePreview',
+                        defaultMessage: 'Image preview',
                       })}
-                      url={space.imageUrl}
                     />
+                    <EuiSpacer size="s" />
+
                     <EuiButtonEmpty onClick={this.clearImage}>
                       {intl.formatMessage({
                         id: 'xpack.spaces.management.customizeSpaceAvatar.removeImageButton',
                         defaultMessage: 'Remove image',
                       })}
                     </EuiButtonEmpty>
-                  </Fragment>
+                  </div>
                 )}
                 {!space.imageUrl && (
                   <EuiFilePicker
@@ -246,13 +258,11 @@ class CustomizeSpaceAvatarUI extends Component<Props, State> {
   public onSpaceImageChange = async (files: FileList) => {
     if (files.length > 0) {
       const file = files[0];
-      if (!imageTypes.includes(file.type)) {
-        console.error('TODO: invalid file format');
-      } else if (file.size > 50000) {
-        console.error('TODO: file greater than 50kb');
-      } else {
-        const imageUrl = await encode(file, file.type);
-        console.log(file, imageUrl);
+      const invalidImageType = !imageTypes.includes(file.type);
+      this.setState({ invalidImageType });
+      if (!invalidImageType) {
+        const fileToDataUrl = await encode(file, file.type);
+        const imageUrl = await resizeImage(fileToDataUrl, { width: 100 });
         this.props.onChange({
           ...this.props.space,
           imageUrl,
