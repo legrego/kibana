@@ -9,6 +9,7 @@ import Joi from 'joi';
 import { difference } from 'lodash';
 import { Capabilities as UICapabilities } from '../../../../src/core/public';
 import { FeatureWithAllOrReadPrivileges } from './feature';
+import { FeatureKibanaPrivileges } from './feature_kibana_privileges';
 
 // Each feature gets its own property on the UICapabilities object,
 // but that object has a few built-in properties which should not be overwritten.
@@ -43,6 +44,30 @@ const privilegeSchema = Joi.object({
     .required(),
 });
 
+const customPrivilegeSchema = Joi.object({
+  id: Joi.string(),
+  name: Joi.string(),
+  excludeFromBasePrivileges: Joi.boolean(),
+  privilegeType: Joi.string()
+    .valid('all', 'read', 'excluded')
+    .required(),
+  management: managementSchema,
+  catalogue: catalogueSchema,
+  api: Joi.array().items(Joi.string()),
+  app: Joi.array().items(Joi.string()),
+  savedObject: Joi.object({
+    all: Joi.array()
+      .items(Joi.string())
+      .required(),
+    read: Joi.array()
+      .items(Joi.string())
+      .required(),
+  }).required(),
+  ui: Joi.array()
+    .items(Joi.string().regex(uiCapabilitiesRegex))
+    .required(),
+});
+
 const schema = Joi.object({
   id: Joi.string()
     .regex(featurePrivilegePartRegex)
@@ -60,8 +85,15 @@ const schema = Joi.object({
   management: managementSchema,
   catalogue: catalogueSchema,
   privileges: Joi.object({
+    minimum: privilegeSchema,
     all: privilegeSchema,
     read: privilegeSchema,
+    custom: Joi.array().items(
+      Joi.object({
+        categoryName: Joi.string().required(),
+        privileges: Joi.array().items(customPrivilegeSchema),
+      })
+    ),
   }).required(),
   privilegesTooltip: Joi.string(),
   reserved: Joi.object({
@@ -69,6 +101,17 @@ const schema = Joi.object({
     description: Joi.string().required(),
   }),
 });
+
+function collectFeaturePrivileges(feature: FeatureWithAllOrReadPrivileges) {
+  return [
+    ['minimum', feature.privileges.minimum],
+    ['read', feature.privileges.read],
+    ['all', feature.privileges.all],
+    ...(feature.privileges.custom
+      ? feature.privileges.custom.map(o => o.privileges.map(op => [op.id, op])).flat()
+      : []),
+  ].filter(([, priv]) => Boolean(priv)) as Array<[string, FeatureKibanaPrivileges]>;
+}
 
 export function validateFeature(feature: FeatureWithAllOrReadPrivileges) {
   const validateResult = Joi.validate(feature, schema);
@@ -78,7 +121,7 @@ export function validateFeature(feature: FeatureWithAllOrReadPrivileges) {
   // the following validation can't be enforced by the Joi schema, since it'd require us looking "up" the object graph for the list of valid value, which they explicitly forbid.
   const { app = [], management = {}, catalogue = [] } = feature;
 
-  const privilegeEntries = [...Object.entries(feature.privileges)];
+  const privilegeEntries = collectFeaturePrivileges(feature);
   if (feature.reserved) {
     privilegeEntries.push(['reserved', feature.reserved.privilege]);
   }

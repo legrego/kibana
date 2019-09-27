@@ -4,5 +4,4 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-export { ElasticsearchPrivileges } from './es/elasticsearch_privileges';
-export { KibanaPrivilegesRegion } from './kibana_1/kibana_privileges_region';
+export { FeatureTable } from './feature_table';

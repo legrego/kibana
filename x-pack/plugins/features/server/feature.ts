@@ -4,7 +4,11 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { FeatureKibanaPrivileges, FeatureKibanaPrivilegesSet } from './feature_kibana_privileges';
+import {
+  FeatureKibanaPrivileges,
+  FeatureKibanaPrivilegesSet,
+  CustomFeatureKibanaPrivileges,
+} from './feature_kibana_privileges';
 
 /**
  * Interface for registering a feature.
@@ -98,7 +102,15 @@ export interface Feature<
    * ```
    * @see FeatureKibanaPrivileges
    */
-  privileges: TPrivileges;
+  privileges: {
+    minimum: FeatureKibanaPrivileges;
+    all: FeatureKibanaPrivileges;
+    read: FeatureKibanaPrivileges;
+    custom?: Array<{
+      categoryName: string;
+      privileges: CustomFeatureKibanaPrivileges[];
+    }>;
+  };
 
   /**
    * Optional message to display on the Role Management screen when configuring permissions for this feature.

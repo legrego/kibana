@@ -6,8 +6,29 @@
 
 import { uiCapabilitiesForFeatures } from './ui_capabilities_for_features';
 
-function createFeaturePrivilege(key: string, capabilities: string[] = []) {
+function createFeaturePrivilege(key: 'all' | 'read', capabilities: string[] = []) {
   return {
+    minimum: {
+      savedObject: {
+        all: [],
+        read: [],
+      },
+      ui: [],
+    },
+    all: {
+      savedObject: {
+        all: [],
+        read: [],
+      },
+      ui: [],
+    },
+    read: {
+      savedObject: {
+        all: [],
+        read: [],
+      },
+      ui: [],
+    },
     [key]: {
       savedObject: {
         all: [],
@@ -74,9 +95,8 @@ describe('populateUICapabilities', () => {
           app: ['bar-app'],
           catalogue: ['anotherFooEntry', 'anotherBarEntry'],
           privileges: {
-            ...createFeaturePrivilege('foo', ['capability1', 'capability2']),
-            ...createFeaturePrivilege('bar', ['capability3', 'capability4']),
-            ...createFeaturePrivilege('baz'),
+            ...createFeaturePrivilege('all', ['capability1', 'capability2']),
+            ...createFeaturePrivilege('read', ['capability3', 'capability4']),
           },
         },
       ])
@@ -103,9 +123,8 @@ describe('populateUICapabilities', () => {
           navLinkId: 'newFeatureNavLink',
           app: ['bar-app'],
           privileges: {
-            ...createFeaturePrivilege('foo', ['capability1', 'capability2']),
-            ...createFeaturePrivilege('bar', ['capability3', 'capability4']),
-            ...createFeaturePrivilege('baz', ['capability1', 'capability5']),
+            ...createFeaturePrivilege('all', ['capability1', 'capability2']),
+            ...createFeaturePrivilege('read', ['capability3', 'capability4']),
           },
         },
       ])
@@ -116,7 +135,6 @@ describe('populateUICapabilities', () => {
         capability2: true,
         capability3: true,
         capability4: true,
-        capability5: true,
       },
     });
   });
@@ -130,9 +148,8 @@ describe('populateUICapabilities', () => {
           navLinkId: 'newFeatureNavLink',
           app: ['bar-app'],
           privileges: {
-            ...createFeaturePrivilege('foo', ['capability1', 'capability2']),
-            ...createFeaturePrivilege('bar', ['capability3', 'capability4']),
-            ...createFeaturePrivilege('baz', ['capability1', 'capability5']),
+            ...createFeaturePrivilege('all', ['capability1', 'capability2']),
+            ...createFeaturePrivilege('read', ['capability3', 'capability4']),
           },
         },
         {
@@ -140,8 +157,8 @@ describe('populateUICapabilities', () => {
           name: 'another new feature',
           app: ['bar-app'],
           privileges: {
-            ...createFeaturePrivilege('foo', ['capability1', 'capability2']),
-            ...createFeaturePrivilege('bar', ['capability3', 'capability4']),
+            ...createFeaturePrivilege('all', ['capability1', 'capability2']),
+            ...createFeaturePrivilege('read', ['capability3', 'capability4']),
           },
         },
         {
@@ -151,12 +168,7 @@ describe('populateUICapabilities', () => {
           app: ['bar-app'],
           privileges: {
             ...createFeaturePrivilege('all', ['capability1', 'capability2']),
-            ...createFeaturePrivilege('read', []),
-            ...createFeaturePrivilege('somethingInBetween', [
-              'something1',
-              'something2',
-              'something3',
-            ]),
+            ...createFeaturePrivilege('read', ['something1', 'something2', 'something3']),
           },
         },
       ])

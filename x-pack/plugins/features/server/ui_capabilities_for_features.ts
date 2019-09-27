@@ -39,7 +39,7 @@ function getCapabilitiesFromFeature(feature: Feature): FeatureCapabilities {
     };
   }
 
-  Object.values(feature.privileges).forEach(privilege => {
+  [(feature.privileges.all, feature.privileges.read)].filter(Boolean).forEach(privilege => {
     UIFeatureCapabilities[feature.id] = {
       ...UIFeatureCapabilities[feature.id],
       ...privilege.ui.reduce(

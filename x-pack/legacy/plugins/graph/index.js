@@ -59,6 +59,13 @@ export function graph(kibana) {
         app: ['graph', 'kibana'],
         catalogue: ['graph'],
         privileges: {
+          minimum: {
+            savedObject: {
+              all: [],
+              read: ['index-pattern', 'graph-workspace'],
+            },
+            ui: []
+          },
           all: {
             savedObject: {
               all: ['graph-workspace'],

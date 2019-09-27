@@ -9,7 +9,10 @@ import { Feature } from '../../../../../../../plugins/features/server';
 import { XPackMainPlugin } from '../../../../../xpack_main/xpack_main';
 import { RawKibanaFeaturePrivileges, RawKibanaPrivileges } from '../../../../common/model';
 import { Actions } from '../actions';
-import { featurePrivilegeBuilderFactory } from './feature_privilege_builder';
+import {
+  featurePrivilegeBuilderFactory,
+  collectFeaturePrivileges,
+} from './feature_privilege_builder';
 
 export interface PrivilegesService {
   get(): RawKibanaPrivileges;
@@ -26,7 +29,7 @@ export function privilegesFactory(actions: Actions, xpackMainPlugin: XPackMainPl
       const allActions = uniq(
         flatten(
           basePrivilegeFeatures.map(feature =>
-            Object.values(feature.privileges).reduce<string[]>((acc, privilege) => {
+            collectFeaturePrivileges(feature).reduce<string[]>((acc, [, privilege]) => {
               if (privilege.excludeFromBasePrivileges) {
                 return acc;
               }
@@ -40,7 +43,7 @@ export function privilegesFactory(actions: Actions, xpackMainPlugin: XPackMainPl
       const readActions = uniq(
         flatten(
           basePrivilegeFeatures.map(feature =>
-            Object.entries(feature.privileges).reduce<string[]>((acc, [privilegeId, privilege]) => {
+            collectFeaturePrivileges(feature).reduce<string[]>((acc, [privilegeId, privilege]) => {
               if (privilegeId !== 'read' || privilege.excludeFromBasePrivileges) {
                 return acc;
               }
@@ -54,12 +57,15 @@ export function privilegesFactory(actions: Actions, xpackMainPlugin: XPackMainPl
       return {
         features: features.reduce((acc: RawKibanaFeaturePrivileges, feature: Feature) => {
           if (Object.keys(feature.privileges).length > 0) {
-            acc[feature.id] = mapValues(feature.privileges, (privilege, privilegeId) => [
-              actions.login,
-              actions.version,
-              ...featurePrivilegeBuilder.getActions(privilege, feature),
-              ...(privilegeId === 'all' ? [actions.allHack] : []),
-            ]);
+            acc[feature.id] = mapValues(
+              Object.fromEntries(collectFeaturePrivileges(feature)),
+              (privilege, privilegeId) => [
+                actions.login,
+                actions.version,
+                ...featurePrivilegeBuilder.getActions(privilege, feature),
+                ...(privilegeId === 'all' ? [actions.allHack] : []),
+              ]
+            );
           }
           return acc;
         }, {}),

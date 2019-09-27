@@ -14,7 +14,10 @@ import { Plugin } from './plugin';
 export { uiCapabilitiesRegex } from './feature_schema';
 
 export { Feature, FeatureWithAllOrReadPrivileges } from './feature';
-export { FeatureKibanaPrivileges } from './feature_kibana_privileges';
+export {
+  FeatureKibanaPrivileges,
+  CustomFeatureKibanaPrivileges,
+} from './feature_kibana_privileges';
 export { PluginSetupContract } from './plugin';
 
 export const plugin = (initializerContext: PluginInitializerContext) =>

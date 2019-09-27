@@ -11,7 +11,10 @@ export interface BuildOSSFeaturesParams {
   includeTimelion: boolean;
 }
 
-export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSSFeaturesParams) => {
+export const buildOSSFeatures = ({
+  savedObjectTypes,
+  includeTimelion,
+}: BuildOSSFeaturesParams): Feature[] => {
   return [
     {
       id: 'discover',
@@ -23,6 +26,13 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
       app: ['kibana'],
       catalogue: ['discover'],
       privileges: {
+        minimum: {
+          savedObject: {
+            all: [],
+            read: ['index-pattern', 'search', 'query'],
+          },
+          ui: ['show', 'createShortUrl', 'save', 'saveQuery'],
+        },
         all: {
           savedObject: {
             all: ['search', 'url', 'query'],
@@ -49,20 +59,141 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
       app: ['kibana'],
       catalogue: ['visualize'],
       privileges: {
-        all: {
-          savedObject: {
-            all: ['visualization', 'url', 'query', 'lens'],
-            read: ['index-pattern', 'search'],
-          },
-          ui: ['show', 'createShortUrl', 'delete', 'save', 'saveQuery'],
-        },
-        read: {
+        minimum: {
           savedObject: {
             all: [],
             read: ['index-pattern', 'search', 'visualization', 'query', 'lens'],
           },
           ui: ['show'],
         },
+        all: {
+          savedObject: {
+            all: ['dashboard', 'url', 'query', 'timelion-sheet', 'alert'],
+            read: [
+              'index-pattern',
+              'search',
+              'visualization',
+              'timelion-sheet',
+              'canvas-workpad',
+              'map',
+            ],
+          },
+          ui: [
+            'createNew',
+            'show',
+            'showWriteControls',
+            'saveQuery',
+            'createShortUrl',
+            'createReports',
+            'createAlerts',
+            'muteAlerts',
+            'viewAlerts',
+          ],
+        },
+        read: {
+          savedObject: {
+            all: [],
+            read: [
+              'index-pattern',
+              'search',
+              'visualization',
+              'timelion-sheet',
+              'canvas-workpad',
+              'map',
+              'dashboard',
+              'query',
+              'alert',
+            ],
+          },
+          ui: ['show', 'viewAlerts'],
+        },
+        custom: [
+          {
+            categoryName: 'Sharing',
+            privileges: [
+              {
+                id: 'create-short-urls',
+                name: 'Create short-urls',
+                privilegeType: 'all',
+                savedObject: {
+                  all: ['url'],
+                  read: [],
+                },
+                ui: ['show', 'createShortUrl'],
+              },
+              {
+                id: 'create-reports',
+                name: 'Create Reports',
+                privilegeType: 'all',
+                savedObject: {
+                  all: [],
+                  read: [],
+                },
+                ui: ['show', 'createReports'],
+              },
+            ],
+          },
+          {
+            categoryName: 'Create visualizations',
+            privileges: [
+              {
+                id: 'create-traditional-viz',
+                name: 'Create traditional visualizations',
+                privilegeType: 'all',
+                savedObject: {
+                  all: ['visualization'],
+                  read: ['index-pattern', 'search', 'query', 'lens'],
+                },
+                ui: ['show'],
+              },
+              {
+                id: 'create-timelion-viz',
+                name: 'Create timelion visualizations',
+                privilegeType: 'all',
+                savedObject: {
+                  all: ['timelion-sheet'],
+                  read: [],
+                },
+                ui: ['createNew', 'show', 'showWriteControls'],
+              },
+            ],
+          },
+          {
+            categoryName: 'Alerting',
+            privileges: [
+              {
+                id: 'view-alerts',
+                name: 'View alerts',
+                privilegeType: 'read',
+                savedObject: {
+                  all: [],
+                  read: ['alert'],
+                },
+                ui: ['viewAlerts'],
+              },
+              {
+                id: 'mute-alerts',
+                name: 'Mute alerts',
+                privilegeType: 'all',
+                savedObject: {
+                  all: ['alert'],
+                  read: [],
+                },
+                ui: ['viewAlerts', 'muteAlerts'],
+              },
+              {
+                id: 'create-alerts',
+                name: 'Create alerts',
+                privilegeType: 'all',
+                savedObject: {
+                  all: ['alert'],
+                  read: [],
+                },
+                ui: ['viewAlerts', 'createAlerts'],
+              },
+            ],
+          },
+        ],
       },
     },
     {
@@ -75,6 +206,22 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
       app: ['kibana'],
       catalogue: ['dashboard'],
       privileges: {
+        minimum: {
+          savedObject: {
+            all: [],
+            read: [
+              'index-pattern',
+              'search',
+              'visualization',
+              'timelion-sheet',
+              'canvas-workpad',
+              'map',
+              'dashboard',
+              'query',
+            ],
+          },
+          ui: ['show'],
+        },
         all: {
           savedObject: {
             all: ['dashboard', 'url', 'query'],
@@ -117,6 +264,14 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
       app: ['kibana'],
       catalogue: ['console', 'searchprofiler', 'grokdebugger'],
       privileges: {
+        minimum: {
+          api: ['console'],
+          savedObject: {
+            all: [],
+            read: [],
+          },
+          ui: ['show'],
+        },
         all: {
           api: ['console'],
           savedObject: {
@@ -151,6 +306,13 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
         kibana: ['settings'],
       },
       privileges: {
+        minimum: {
+          savedObject: {
+            all: [],
+            read: [],
+          },
+          ui: [],
+        },
         all: {
           savedObject: {
             all: ['config'],
@@ -179,6 +341,13 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
         kibana: ['index_patterns'],
       },
       privileges: {
+        minimum: {
+          savedObject: {
+            all: [],
+            read: ['index-pattern'],
+          },
+          ui: [],
+        },
         all: {
           savedObject: {
             all: ['index-pattern'],
@@ -207,6 +376,14 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
         kibana: ['objects'],
       },
       privileges: {
+        minimum: {
+          api: ['copySavedObjectsToSpaces'],
+          savedObject: {
+            all: [],
+            read: [...savedObjectTypes],
+          },
+          ui: ['read'],
+        },
         all: {
           api: ['copySavedObjectsToSpaces'],
           savedObject: {
@@ -237,6 +414,13 @@ const timelionFeature: Feature = {
   app: ['timelion', 'kibana'],
   catalogue: ['timelion'],
   privileges: {
+    minimum: {
+      savedObject: {
+        all: [],
+        read: ['index-pattern', 'timelion-sheet'],
+      },
+      ui: [],
+    },
     all: {
       savedObject: {
         all: ['timelion-sheet'],

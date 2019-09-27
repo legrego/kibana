@@ -5,7 +5,11 @@
  */
 
 import { flatten } from 'lodash';
-import { Feature, FeatureKibanaPrivileges } from '../../../../../../../../plugins/features/server';
+import {
+  Feature,
+  FeatureKibanaPrivileges,
+  CustomFeatureKibanaPrivileges,
+} from '../../../../../../../../plugins/features/server';
 import { Actions } from '../../actions';
 import { FeaturePrivilegeApiBuilder } from './api';
 import { FeaturePrivilegeAppBuilder } from './app';
@@ -16,6 +20,19 @@ import { FeaturePrivilegeNavlinkBuilder } from './navlink';
 import { FeaturePrivilegeSavedObjectBuilder } from './saved_object';
 import { FeaturePrivilegeUIBuilder } from './ui';
 export { FeaturePrivilegeBuilder };
+
+export const collectFeaturePrivileges = (feature: Feature) => {
+  return [
+    ['minimum', feature.privileges.minimum],
+    ['read', feature.privileges.read],
+    ['all', feature.privileges.all],
+    ...(feature.privileges.custom
+      ? feature.privileges.custom.map(o => o.privileges.map(op => [op.id, op])).flat()
+      : []),
+  ].filter(([, priv]) => Boolean(priv)) as Array<
+    [string, FeatureKibanaPrivileges | CustomFeatureKibanaPrivileges]
+  >;
+};
 
 export const featurePrivilegeBuilderFactory = (actions: Actions): FeaturePrivilegeBuilder => {
   const builders = [
