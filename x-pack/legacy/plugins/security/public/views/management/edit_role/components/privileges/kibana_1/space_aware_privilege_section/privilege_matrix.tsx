@@ -22,11 +22,11 @@ import {
 } from '@elastic/eui';
 import { FormattedMessage, InjectedIntl } from '@kbn/i18n/react';
 import React, { Component, Fragment } from 'react';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
 import { SpaceAvatar } from '../../../../../../../../../spaces/public/components';
 import { Feature } from '../../../../../../../../../../../plugins/features/server';
 import { FeaturesPrivileges, Role } from '../../../../../../../../common/model';
-import { CalculatedPrivilege } from '../../../../../../../lib/kibana_privilege_calculator';
 import { isGlobalPrivilegeDefinition } from '../../../../../../../lib/privilege_utils';
 import { SpacesPopoverList } from '../../../spaces_popover_list';
 import { PrivilegeDisplay } from './privilege_display';
@@ -37,8 +37,8 @@ interface Props {
   role: Role;
   spaces: Space[];
   features: Feature[];
-  calculatedPrivileges: CalculatedPrivilege[];
   intl: InjectedIntl;
+  pocPrivilegeCalculator: POCPrivilegeCalculator;
 }
 
 interface State {
@@ -280,7 +280,7 @@ export class PrivilegeMatrix extends Component<Props, State> {
 
   private renderPrivilegeDisplay = (
     column: SpacesColumn,
-    { feature }: TableRow,
+    { feature, role }: TableRow,
     globalBasePrivilege: string[]
   ) => {
     if (column.isGlobal) {
@@ -288,39 +288,37 @@ export class PrivilegeMatrix extends Component<Props, State> {
         return <PrivilegeDisplay privilege={globalBasePrivilege} />;
       }
 
-      const featureCalculatedPrivilege = this.props.calculatedPrivileges[column.spacesIndex]
-        .feature[feature.id];
-
-      return (
-        <PrivilegeDisplay
-          privilege={featureCalculatedPrivilege && featureCalculatedPrivilege.actualPrivilege}
-        />
+      const effectiveFeaturePrivileges = this.props.pocPrivilegeCalculator.getEffectiveFeaturePrivileges(
+        role.kibana,
+        role.kibana[column.spacesIndex].spaces,
+        feature.id
       );
+
+      const mainPriv = effectiveFeaturePrivileges.find(p => p === 'all' || p === 'read');
+
+      return <PrivilegeDisplay privilege={mainPriv} />;
     } else {
       // not global
 
-      const calculatedPrivilege = this.props.calculatedPrivileges[column.spacesIndex];
+      // const calculatedPrivilege = this.props.calculatedPrivileges[column.spacesIndex];
 
       if (feature.isBase) {
         // Space base privilege
-        const actualBasePrivileges = calculatedPrivilege.base.actualPrivilege;
-
-        return (
-          <PrivilegeDisplay
-            explanation={calculatedPrivilege.base}
-            privilege={actualBasePrivileges}
-          />
+        const actualBasePrivilege = this.props.pocPrivilegeCalculator.getEffectiveBasePrivilege(
+          role.kibana,
+          role.kibana[column.spacesIndex].spaces
         );
+
+        return <PrivilegeDisplay privilege={actualBasePrivilege} />;
       }
 
-      const featurePrivilegeExplanation = calculatedPrivilege.feature[feature.id];
-
-      return (
-        <PrivilegeDisplay
-          explanation={featurePrivilegeExplanation}
-          privilege={featurePrivilegeExplanation && featurePrivilegeExplanation.actualPrivilege}
-        />
+      const effectiveFeaturePrivileges = this.props.pocPrivilegeCalculator.getEffectiveFeaturePrivileges(
+        role.kibana,
+        role.kibana[column.spacesIndex].spaces,
+        feature.id
       );
+
+      return <PrivilegeDisplay privilege={effectiveFeaturePrivileges} />;
     }
   };
 

@@ -15,6 +15,7 @@ import { FormattedMessage, InjectedIntl, injectI18n } from '@kbn/i18n/react';
 import _ from 'lodash';
 import React, { Component, Fragment } from 'react';
 import { UICapabilities } from 'ui/capabilities';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
 import { Feature } from '../../../../../../../../../../../plugins/features/server';
 import { KibanaPrivileges, Role } from '../../../../../../../../common/model';
@@ -144,7 +145,7 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
         <PrivilegeSpaceTable
           role={this.props.role}
           displaySpaces={this.getDisplaySpaces()}
-          privilegeCalculatorFactory={this.props.privilegeCalculatorFactory}
+          pocPrivilegeCalculator={new POCPrivilegeCalculator(this.props.kibanaPrivileges)}
           onChange={this.props.onChange}
           onEdit={this.onEditSpacesPrivileges}
           intl={this.props.intl}
@@ -208,9 +209,7 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
     const viewMatrixButton = (
       <PrivilegeMatrix
         role={this.props.role}
-        calculatedPrivileges={this.props.privilegeCalculatorFactory
-          .getInstance(this.props.role)
-          .calculateEffectivePrivileges()}
+        pocPrivilegeCalculator={new POCPrivilegeCalculator(this.props.kibanaPrivileges)}
         features={this.props.features}
         spaces={this.getDisplaySpaces()}
         intl={this.props.intl}

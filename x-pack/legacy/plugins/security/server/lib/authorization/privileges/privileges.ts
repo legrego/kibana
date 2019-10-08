@@ -57,14 +57,24 @@ export function privilegesFactory(actions: Actions, xpackMainPlugin: XPackMainPl
       return {
         features: features.reduce((acc: RawKibanaFeaturePrivileges, feature: Feature) => {
           if (Object.keys(feature.privileges).length > 0) {
+            const minimumPrivileges = feature.privileges.minimum;
+            const minimumPrivilegeActions = featurePrivilegeBuilder.getActions(
+              minimumPrivileges,
+              feature
+            );
+
             acc[feature.id] = mapValues(
-              Object.fromEntries(collectFeaturePrivileges(feature)),
-              (privilege, privilegeId) => [
-                actions.login,
-                actions.version,
-                ...featurePrivilegeBuilder.getActions(privilege, feature),
-                ...(privilegeId === 'all' ? [actions.allHack] : []),
-              ]
+              Object.fromEntries(
+                collectFeaturePrivileges(feature, { includeMinimumPrivileges: false })
+              ),
+              (privilege, privilegeId) =>
+                uniq([
+                  actions.login,
+                  actions.version,
+                  ...minimumPrivilegeActions,
+                  ...featurePrivilegeBuilder.getActions(privilege, feature),
+                  ...(privilegeId === 'all' ? [actions.allHack] : []),
+                ])
             );
           }
           return acc;

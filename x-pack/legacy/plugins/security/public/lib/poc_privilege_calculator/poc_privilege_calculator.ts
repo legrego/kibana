@@ -6,49 +6,32 @@
 import _ from 'lodash';
 import { NO_PRIVILEGE_VALUE } from 'plugins/security/views/management/edit_role/lib/constants';
 import { KibanaPrivileges, RoleKibanaPrivilege } from '../../../common/model';
-import { areActionsFullyCovered } from '../../../common/privilege_calculator_utils';
 
 export class POCPrivilegeCalculator {
   constructor(private readonly kibanaPrivileges: KibanaPrivileges) {}
 
-  public getEffectiveGlobalBasePrivilege(assignedPrivileges: RoleKibanaPrivilege[]) {
-    const actionMap = {
-      all: this.kibanaPrivileges.getGlobalPrivileges().getActions('all'),
-      read: this.kibanaPrivileges.getGlobalPrivileges().getActions('read'),
-    };
-    const assignedActions = this.collectAssignedGlobalActions(assignedPrivileges);
-    if (areActionsFullyCovered(assignedActions, actionMap.all)) {
+  public getEffectiveBasePrivilege(assignedPrivileges: RoleKibanaPrivilege[], spaces: string[]) {
+    const actionFactory = this.isGlobalPrivilege({ spaces })
+      ? (privilege: string) => this.kibanaPrivileges.getGlobalPrivileges().getActions(privilege)
+      : (privilege: string) => this.kibanaPrivileges.getSpacesPrivileges().getActions(privilege);
+
+    const assignedActions = this.collectAssignedActions(assignedPrivileges, spaces);
+
+    if (this.checkActions(assignedActions, actionFactory('all')).hasAllRequested) {
       return 'all';
     }
-    if (areActionsFullyCovered(assignedActions, actionMap.read)) {
+    if (this.checkActions(assignedActions, actionFactory('read')).hasAllRequested) {
       return 'read';
     }
     return NO_PRIVILEGE_VALUE;
   }
 
-  public getEffectiveSpaceBasePrivilege(
+  public getEffectiveFeaturePrivileges(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string
-  ) {
-    const actionMap = {
-      all: this.kibanaPrivileges.getSpacesPrivileges().getActions('all'),
-      read: this.kibanaPrivileges.getSpacesPrivileges().getActions('read'),
-    };
-    const assignedActions = this.collectAssignedSpaceActions(assignedPrivileges, spaceId);
-    if (areActionsFullyCovered(assignedActions, actionMap.all)) {
-      return 'all';
-    }
-    if (areActionsFullyCovered(assignedActions, actionMap.read)) {
-      return 'read';
-    }
-    return NO_PRIVILEGE_VALUE;
-  }
-
-  public getEffectiveGlobalFeaturePrivileges(
-    assignedPrivileges: RoleKibanaPrivilege[],
+    spaces: string[],
     featureId: string
   ) {
-    const assignedActions = this.collectAssignedGlobalActions(assignedPrivileges);
+    const assignedActions = this.collectAssignedActions(assignedPrivileges, spaces);
 
     return this.kibanaPrivileges
       .getFeaturePrivileges()
@@ -58,71 +41,75 @@ export class POCPrivilegeCalculator {
           .getFeaturePrivileges()
           .getActions(featureId, privilege);
 
-        const missing = privilegeActions.filter(pa => !assignedActions.includes(pa));
+        const { hasAllRequested } = this.checkActions(assignedActions, privilegeActions);
 
-        const covered = areActionsFullyCovered(assignedActions, privilegeActions);
-        console.log({ featureId, privilege, covered, privilegeActions, assignedActions, missing });
-        return covered;
+        return hasAllRequested;
       });
   }
 
-  public getEffectiveSpaceFeaturePrivileges(
+  public getInheritedFeaturePrivileges(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string,
+    spaces: string[],
     featureId: string
   ): string[] {
-    const assignedActions = this.collectAssignedSpaceActions(assignedPrivileges, spaceId);
-
-    return this.kibanaPrivileges
-      .getFeaturePrivileges()
-      .getPrivileges(featureId)
-      .filter(privilege => {
-        const privilegeActions = this.kibanaPrivileges
-          .getFeaturePrivileges()
-          .getActions(featureId, privilege);
-
-        return areActionsFullyCovered(assignedActions, privilegeActions);
-      });
-  }
-
-  public getInheritedSpaceFeaturePrivileges(
-    assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string,
-    featureId: string
-  ): string[] {
-    const otherPrivileges = assignedPrivileges.filter(ap => !ap.spaces.includes(spaceId));
-    return this.getEffectiveSpaceFeaturePrivileges(otherPrivileges, spaceId, featureId);
+    const key = this.getKey(spaces);
+    const otherPrivileges = assignedPrivileges.filter(ap => this.getKey(ap.spaces) !== key);
+    return this.getEffectiveFeaturePrivileges(otherPrivileges, spaces, featureId);
   }
 
   public canToggleFeaturePrivilege(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string,
+    spaces: string[],
     featureId: string,
     privilegeId: string
   ) {
     const privilegesWithoutCandidate = this.getAssignedPrivilegesWithoutCandidateFeaturePrivilege(
       assignedPrivileges,
-      spaceId,
+      spaces,
       featureId,
       privilegeId
     );
 
-    return !this.getEffectiveSpaceFeaturePrivileges(
+    return !this.getEffectiveFeaturePrivileges(
       privilegesWithoutCandidate,
-      spaceId,
+      spaces,
       featureId
     ).includes(privilegeId);
   }
 
-  public getPrivilegesResponsibleForFeaturePrivilegeGrant(
+  public explainAllEffectiveFeaturePrivileges(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string,
+    spaces: string[]
+  ): { [featureId: string]: { [privilegeId: string]: { global: any; space: any } } } {
+    const featurePrivileges = this.kibanaPrivileges.getFeaturePrivileges().getAllPrivileges();
+    return Object.entries(featurePrivileges).reduce((acc, entry) => {
+      const [featureId, privileges] = entry;
+      return {
+        ...acc,
+        [featureId]: privileges.reduce((acc2, privilegeId) => {
+          return {
+            ...acc2,
+            [privilegeId]: this.explainEffectiveFeaturePrivilege(
+              assignedPrivileges,
+              spaces,
+              featureId,
+              privilegeId
+            ),
+          };
+        }, {}),
+      };
+    }, {});
+  }
+
+  public explainEffectiveFeaturePrivilege(
+    assignedPrivileges: RoleKibanaPrivilege[],
+    spaces: string[],
     featureId: string,
     privilegeId: string
   ) {
     const privilegesWithoutCandidate = this.getAssignedPrivilegesWithoutCandidateFeaturePrivilege(
       assignedPrivileges,
-      spaceId,
+      spaces,
       featureId,
       privilegeId
     );
@@ -136,66 +123,102 @@ export class POCPrivilegeCalculator {
         base: [] as string[],
         feature: {} as any,
       },
-      [spaceId]: {
+      space: {
         base: [] as string[],
         feature: {} as any,
       },
     };
 
     privilegesWithoutCandidate.forEach(privilege => {
-      const responsibleBase = privilege.base.filter(basePriv => {
-        const actions = this.kibanaPrivileges.getGlobalPrivileges().getActions(basePriv);
-        return areActionsFullyCovered(privilegeActions, actions);
-      });
-
       const responsibleFeatures = (privilege.feature[featureId] || []).filter(featurePriv => {
         const actions = this.kibanaPrivileges
           .getFeaturePrivileges()
           .getActions(featureId, featurePriv);
-        const covered = areActionsFullyCovered(actions, privilegeActions);
+        const { hasAllRequested } = this.checkActions(actions, privilegeActions);
 
-        const missing = privilegeActions.filter(pa => !actions.includes(pa));
-
-        console.log('candidate', { featureId, featurePriv, covered, missing });
-
-        return covered;
+        return hasAllRequested;
       });
 
-      responsiblePrivileges.global.base.push(...responsibleBase);
-      responsiblePrivileges.global.feature[featureId] = responsibleFeatures;
+      const isGlobalPrivilege = this.isGlobalPrivilege(privilege);
+
+      if (isGlobalPrivilege) {
+        const responsibleGlobalBase = privilege.base.filter(basePriv => {
+          const actions = this.kibanaPrivileges.getGlobalPrivileges().getActions(basePriv);
+          return this.checkActions(actions, privilegeActions).hasAllRequested;
+        });
+
+        responsiblePrivileges.global.base.push(...responsibleGlobalBase);
+        if (responsibleFeatures.length > 0) {
+          responsiblePrivileges.global.feature[featureId] = responsibleFeatures;
+        }
+      } else {
+        const responsibleSpaceBase = privilege.base.filter(basePriv => {
+          const actions = this.kibanaPrivileges.getSpacesPrivileges().getActions(basePriv);
+          return this.checkActions(actions, privilegeActions).hasAllRequested;
+        });
+        responsiblePrivileges.space.base.push(...responsibleSpaceBase);
+        if (responsibleFeatures.length > 0) {
+          responsiblePrivileges.space.feature[featureId] = responsibleFeatures;
+        }
+      }
     });
 
     return responsiblePrivileges;
   }
 
-  public getAssignedSpaceFeaturePrivileges(
+  public getAssignedFeaturePrivileges(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string,
+    spaces: string[],
     featureId: string
   ): string[] {
     return _.uniq(
-      assignedPrivileges
-        .filter(ap => ap.spaces.includes(spaceId))
-        .reduce(
-          (acc, ap) => {
-            return [...acc, ...(ap.feature[featureId] || [])];
-          },
-          [] as string[]
-        )
+      this.getRelevantPrivileges(assignedPrivileges, spaces).reduce(
+        (acc, ap) => {
+          return [...acc, ...(ap.feature[featureId] || [])];
+        },
+        [] as string[]
+      )
     );
+  }
+
+  private getRelevantPrivileges(
+    assignedPrivileges: RoleKibanaPrivilege[],
+    spaces: string[],
+    includeGlobal = false
+  ) {
+    const key = this.getKey(spaces);
+
+    return assignedPrivileges.filter(
+      ap => this.getKey(ap.spaces) === key || (includeGlobal && this.isGlobalPrivilege(ap))
+    );
+  }
+
+  private checkActions(actions: string[], candidateSubsetOfActions: string[]) {
+    const missingActions = candidateSubsetOfActions.filter(action => !actions.includes(action));
+
+    const hasAllRequested = missingActions.length === 0;
+
+    return {
+      missingActions,
+      hasAllRequested,
+    };
   }
 
   private getAssignedPrivilegesWithoutCandidateFeaturePrivilege(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string,
+    spaces: string[],
     featureId: string,
     candidatePrivilegeId: string
   ): RoleKibanaPrivilege[] {
+    const isGlobalPrivilege = this.isGlobalPrivilege({ spaces });
+
     const privilegesWithoutCandidate = _.cloneDeep(
-      assignedPrivileges.filter(ap => ap.spaces.includes(spaceId))
+      this.getRelevantPrivileges(assignedPrivileges, spaces, true)
     );
     privilegesWithoutCandidate.forEach(p => {
-      p.feature[featureId] = (p.feature[featureId] || []).filter(fp => fp !== candidatePrivilegeId);
+      p.feature[featureId] = (p.feature[featureId] || []).filter(
+        fp => fp !== candidatePrivilegeId || (!isGlobalPrivilege && this.isGlobalPrivilege(p))
+      );
     });
     return privilegesWithoutCandidate;
   }
@@ -205,7 +228,7 @@ export class POCPrivilegeCalculator {
     const featurePrivileges = this.kibanaPrivileges.getFeaturePrivileges();
 
     const assignedActions = assignedPrivileges
-      .filter(ap => ap.spaces.length === 0 || ap.spaces.includes('*'))
+      .filter(this.isGlobalPrivilege)
       .map(ap => {
         const global = ap.base.map(b => globalPrivileges.getActions(b));
         const feature = Object.entries(ap.feature).map(([featureId, featurePrivs]) =>
@@ -221,13 +244,12 @@ export class POCPrivilegeCalculator {
 
   private collectAssignedSpaceActions(
     assignedPrivileges: RoleKibanaPrivilege[],
-    spaceId: string
+    spaces: string[]
   ): string[] {
     const spacePrivileges = this.kibanaPrivileges.getSpacesPrivileges();
     const featurePrivileges = this.kibanaPrivileges.getFeaturePrivileges();
 
-    const assignedActions = assignedPrivileges
-      .filter(ap => ap.spaces.includes(spaceId))
+    const assignedActions = this.getRelevantPrivileges(assignedPrivileges, spaces)
       .map(ap => {
         const space = ap.base.map(b => spacePrivileges.getActions(b));
         const feature = Object.entries(ap.feature).map(([featureId, featurePrivs]) =>
@@ -240,5 +262,20 @@ export class POCPrivilegeCalculator {
       .concat(this.collectAssignedGlobalActions(assignedPrivileges));
 
     return _.uniq(assignedActions);
+  }
+
+  private collectAssignedActions(assignedPrivileges: RoleKibanaPrivilege[], spaces: string[]) {
+    if (this.isGlobalPrivilege({ spaces })) {
+      return this.collectAssignedGlobalActions(assignedPrivileges);
+    }
+    return this.collectAssignedSpaceActions(assignedPrivileges, spaces);
+  }
+
+  private isGlobalPrivilege({ spaces }: { spaces: string[] }) {
+    return spaces.includes('*');
+  }
+
+  private getKey(spaces: string[]): string {
+    return spaces.join(':');
   }
 }

@@ -31,7 +31,7 @@ export const buildOSSFeatures = ({
             all: [],
             read: ['index-pattern', 'search', 'query'],
           },
-          ui: ['show', 'createShortUrl', 'save', 'saveQuery'],
+          ui: ['show'],
         },
         all: {
           savedObject: {
@@ -68,15 +68,8 @@ export const buildOSSFeatures = ({
         },
         all: {
           savedObject: {
-            all: ['dashboard', 'url', 'query', 'timelion-sheet', 'alert'],
-            read: [
-              'index-pattern',
-              'search',
-              'visualization',
-              'timelion-sheet',
-              'canvas-workpad',
-              'map',
-            ],
+            all: ['dashboard', 'url', 'query', 'timelion-sheet', 'alert', 'visualization', 'lens'],
+            read: ['index-pattern', 'search', 'timelion-sheet', 'canvas-workpad', 'map'],
           },
           ui: [
             'createNew',
@@ -190,6 +183,22 @@ export const buildOSSFeatures = ({
                   read: [],
                 },
                 ui: ['viewAlerts', 'createAlerts'],
+              },
+            ],
+          },
+          {
+            categoryName: 'Excluded',
+            privileges: [
+              {
+                id: 'secret-beta-feature',
+                name: 'Secret beta feature',
+                privilegeType: 'excluded',
+                excludeFromBasePrivileges: true,
+                savedObject: {
+                  all: ['secret-type'],
+                  read: ['alert'],
+                },
+                ui: ['viewAlerts'],
               },
             ],
           },

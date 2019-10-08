@@ -24,6 +24,7 @@ import {
 } from '@elastic/eui';
 import { FormattedMessage, InjectedIntl } from '@kbn/i18n/react';
 import React, { Component, Fragment } from 'react';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
 import { Feature } from '../../../../../../../../../../../plugins/features/server';
 import { KibanaPrivileges, Role } from '../../../../../../../../common/model';
@@ -34,7 +35,7 @@ import {
 } from '../../../../../../../lib/kibana_privilege_calculator';
 import { hasAssignedFeaturePrivileges } from '../../../../../../../lib/privilege_utils';
 import { copyRole } from '../../../../../../../lib/role_utils';
-import { CUSTOM_PRIVILEGE_VALUE } from '../../../../lib/constants';
+import { CUSTOM_PRIVILEGE_VALUE, NO_PRIVILEGE_VALUE } from '../../../../lib/constants';
 import { FeatureTable } from '../feature_table';
 import { SpaceSelector } from './space_selector';
 
@@ -478,17 +479,17 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
     });
   };
 
-  private getDisplayedBasePrivilege = (
-    allowedPrivileges: AllowedPrivilege,
-    explanation: PrivilegeExplanation
-  ) => {
-    return `basePrivilege_${CUSTOM_PRIVILEGE_VALUE}`;
+  private getDisplayedBasePrivilege = () => {
+    const form = this.state.role.kibana[this.state.editingIndex];
 
-    let displayedBasePrivilege = explanation.actualPrivilege;
+    const calc = new POCPrivilegeCalculator(this.props.kibanaPrivileges);
 
-    if (this.canCustomizeFeaturePrivileges(explanation, allowedPrivileges)) {
-      const form = this.state.role.kibana[this.state.editingIndex];
+    let displayedBasePrivilege = calc.getEffectiveBasePrivilege(
+      this.state.role.kibana,
+      form.spaces
+    );
 
+    if (this.canCustomizeFeaturePrivileges()) {
       if (
         hasAssignedFeaturePrivileges(form) ||
         form.base.length === 0 ||
@@ -501,18 +502,26 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
     return displayedBasePrivilege ? `basePrivilege_${displayedBasePrivilege}` : undefined;
   };
 
-  private canCustomizeFeaturePrivileges = (
-    basePrivilegeExplanation: PrivilegeExplanation,
-    allowedPrivileges: AllowedPrivilege
-  ) => {
-    if (basePrivilegeExplanation.isDirectlyAssigned) {
-      return true;
-    }
+  private canCustomizeFeaturePrivileges = () => {
+    const form = this.state.role.kibana[this.state.editingIndex];
 
-    const featureEntries = Object.values(allowedPrivileges.feature);
-    return featureEntries.some(entry => {
-      return entry != null && (entry.canUnassign || entry.privileges.length > 1);
-    });
+    const calc = new POCPrivilegeCalculator(this.props.kibanaPrivileges);
+
+    const featurePrivileges = this.props.kibanaPrivileges.getFeaturePrivileges().getAllPrivileges();
+
+    const hasAvailablePrivileges = Object.entries(featurePrivileges).some(
+      ([featureId, privileges]) => {
+        const inheritedPrivileges = calc.getInheritedFeaturePrivileges(
+          this.state.role.kibana,
+          form.spaces,
+          featureId
+        );
+
+        return privileges.some(p => !inheritedPrivileges.includes(p));
+      }
+    );
+
+    return hasAvailablePrivileges;
   };
 
   private onFeaturePrivilegesChange = (featureId: string, privileges: string[]) => {

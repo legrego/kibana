@@ -21,9 +21,12 @@ import { FeaturePrivilegeSavedObjectBuilder } from './saved_object';
 import { FeaturePrivilegeUIBuilder } from './ui';
 export { FeaturePrivilegeBuilder };
 
-export const collectFeaturePrivileges = (feature: Feature) => {
+export const collectFeaturePrivileges = (
+  feature: Feature,
+  { includeMinimumPrivileges = true } = {}
+) => {
   return [
-    ['minimum', feature.privileges.minimum],
+    ['minimum', includeMinimumPrivileges ? feature.privileges.minimum : undefined],
     ['read', feature.privileges.read],
     ['all', feature.privileges.all],
     ...(feature.privileges.custom

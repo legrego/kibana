@@ -42,7 +42,7 @@ function applyAutomaticPrivilegeGrants(feature: Feature): Feature {
   const { all: allPrivilege, read: readPrivilege, minimum, custom } = feature.privileges;
   const reservedPrivilege = feature.reserved ? feature.reserved.privilege : null;
 
-  const minimumPrivileges = minimum || {
+  feature.privileges.minimum = minimum || {
     savedObject: {
       all: [],
       read: [],
@@ -50,101 +50,65 @@ function applyAutomaticPrivilegeGrants(feature: Feature): Feature {
     ui: [],
   };
 
-  const customPrivileges = [
-    {
-      categoryName: 'General',
-      privileges: [
-        {
-          id: 'accessApplication',
-          name: 'Access application',
-          privilegeType: 'read',
-          savedObject: {
-            all: [],
-            read: [],
+  if (custom && custom.length > 0) {
+    const customPrivileges = [
+      {
+        categoryName: 'General',
+        privileges: [
+          {
+            id: 'accessApplication',
+            name: 'Access application',
+            privilegeType: 'read',
+            savedObject: {
+              all: [],
+              read: [],
+            },
+            ui: [],
           },
-          ui: [],
-        },
-      ] as CustomFeatureKibanaPrivileges[],
-    },
-    ...(custom || []),
-  ];
-  feature.privileges.custom = customPrivileges;
+        ] as CustomFeatureKibanaPrivileges[],
+      },
+      ...(custom || []),
+    ];
+    feature.privileges.custom = customPrivileges;
+    applyAutomaticCustomPrivilegeGrants(...customPrivileges);
+  }
 
-  applyAutomaticAllPrivilegeGrants(minimumPrivileges, allPrivilege, reservedPrivilege);
-  applyAutomaticReadPrivilegeGrants(minimumPrivileges, readPrivilege);
-  applyAutomaticCustomPrivilegeGrants(minimumPrivileges, ...customPrivileges);
+  applyAutomaticAllPrivilegeGrants(allPrivilege, reservedPrivilege);
+  applyAutomaticReadPrivilegeGrants(readPrivilege);
 
   return feature;
 }
 
-function applyAutomaticAllPrivilegeGrants(
-  minimumPrivileges: FeatureKibanaPrivileges,
-  ...allPrivileges: Array<FeatureKibanaPrivileges | null>
-) {
+function applyAutomaticAllPrivilegeGrants(...allPrivileges: Array<FeatureKibanaPrivileges | null>) {
   allPrivileges.forEach(allPrivilege => {
     if (allPrivilege) {
-      allPrivilege.savedObject.all = uniq([
-        ...minimumPrivileges.savedObject.all,
-        ...allPrivilege.savedObject.all,
-        'telemetry',
-      ]);
-      allPrivilege.savedObject.read = uniq([
-        ...minimumPrivileges.savedObject.read,
-        ...allPrivilege.savedObject.read,
-        'config',
-        'url',
-      ]);
-      allPrivilege.api = uniq([...(minimumPrivileges.api || []), ...(allPrivilege.api || [])]);
-      allPrivilege.app = uniq([...(minimumPrivileges.app || []), ...(allPrivilege.app || [])]);
-      allPrivilege.ui = uniq([...minimumPrivileges.ui, ...allPrivilege.ui]);
+      allPrivilege.savedObject.all = uniq([...allPrivilege.savedObject.all, 'telemetry']);
+      allPrivilege.savedObject.read = uniq([...allPrivilege.savedObject.read, 'config', 'url']);
     }
   });
 }
 
 function applyAutomaticReadPrivilegeGrants(
-  minimumPrivileges: FeatureKibanaPrivileges,
   ...readPrivileges: Array<FeatureKibanaPrivileges | null>
 ) {
   readPrivileges.forEach(readPrivilege => {
     if (readPrivilege) {
-      readPrivilege.savedObject.read = uniq([
-        ...minimumPrivileges.savedObject.read,
-        ...readPrivilege.savedObject.read,
-        'config',
-        'url',
-      ]);
-
-      readPrivilege.api = uniq([...(minimumPrivileges.api || []), ...(readPrivilege.api || [])]);
-      readPrivilege.app = uniq([...(minimumPrivileges.app || []), ...(readPrivilege.app || [])]);
-      readPrivilege.ui = uniq([...minimumPrivileges.ui, ...readPrivilege.ui]);
+      readPrivilege.savedObject.read = uniq([...readPrivilege.savedObject.read, 'config', 'url']);
     }
   });
 }
 
 function applyAutomaticCustomPrivilegeGrants(
-  minimumPrivileges: FeatureKibanaPrivileges,
   ...customPrivileges: Array<{ categoryName: string; privileges: CustomFeatureKibanaPrivileges[] }>
 ) {
   customPrivileges.forEach(category => {
     category.privileges.forEach(privilege => {
       if (privilege.privilegeType === 'all') {
-        privilege.savedObject.all = uniq([
-          ...minimumPrivileges.savedObject.all,
-          ...privilege.savedObject.all,
-          'telemetry',
-        ]);
+        privilege.savedObject.all = uniq([...privilege.savedObject.all, 'telemetry']);
       }
 
       if (privilege.privilegeType !== 'excluded') {
-        privilege.savedObject.read = uniq([
-          ...minimumPrivileges.savedObject.read,
-          ...privilege.savedObject.read,
-          'config',
-          'url',
-        ]);
-        privilege.api = uniq([...(minimumPrivileges.api || []), ...(privilege.api || [])]);
-        privilege.app = uniq([...(minimumPrivileges.app || []), ...(privilege.app || [])]);
-        privilege.ui = uniq([...minimumPrivileges.ui, ...privilege.ui]);
+        privilege.savedObject.read = uniq([...privilege.savedObject.read, 'config', 'url']);
       }
     });
   });

@@ -17,7 +17,7 @@ import {
 } from '@elastic/eui';
 import { FormattedMessage, InjectedIntl } from '@kbn/i18n/react';
 import _ from 'lodash';
-import React, { Component, ReactNode } from 'react';
+import React, { Component } from 'react';
 import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
 import { Feature } from '../../../../../../../../../../../plugins/features/server';
 import { FeaturesPrivileges, KibanaPrivileges, Role } from '../../../../../../../../common/model';
@@ -74,7 +74,7 @@ export class FeatureTable extends Component<Props, State> {
   }
 
   public render() {
-    const { role, features, calculatedPrivileges, rankedFeaturePrivileges } = this.props;
+    const { role, features } = this.props;
 
     const items: TableRow[] = features
       .sort((feature1, feature2) => {
@@ -236,7 +236,7 @@ export class FeatureTable extends Component<Props, State> {
         const actualPrivilegeValue = privilegeExplanation.actualPrivilege;
 
         const canChangePrivilege =
-          !this.props.disabled && (allowsNone || enabledFeaturePrivileges.length > 1);
+          !this.props.disabled && (allowsNone || enabledFeaturePrivileges.length > 0);
 
         if (!canChangePrivilege) {
           const assignedBasePrivilege =
@@ -283,17 +283,27 @@ export class FeatureTable extends Component<Props, State> {
           isDisabled: !allowsNone,
         });
 
-        let selectedOption = new POCPrivilegeCalculator(this.props.kibanaPrivileges)
-          .getAssignedSpaceFeaturePrivileges(this.props.role.kibana, '*', featureId)
-          .find(p => availablePrivileges.includes(p));
+        const effectiveFeaturePrivs = new POCPrivilegeCalculator(this.props.kibanaPrivileges)
+          .getEffectiveFeaturePrivileges(
+            this.props.role.kibana,
+            this.props.role.kibana[this.props.spacesIndex].spaces,
+            featureId
+          )
+          .sort();
 
-        if (!selectedOption) {
-          if (this.state.expandedItemIds.includes(featureId)) {
-            selectedOption = 'CUSTOM';
-          } else {
-            selectedOption = NO_PRIVILEGE_VALUE;
-          }
-        }
+        const assignedFeaturePrivs = new POCPrivilegeCalculator(
+          this.props.kibanaPrivileges
+        ).getAssignedFeaturePrivileges(
+          this.props.role.kibana,
+          this.props.role.kibana[this.props.spacesIndex].spaces,
+          featureId
+        );
+
+        const effectivePrivilege =
+          ['all', 'read'].find(p => effectiveFeaturePrivs.includes(p)) || NO_PRIVILEGE_VALUE;
+        const hasCustomizations = assignedFeaturePrivs.some(p => !['all', 'read'].includes(p));
+
+        const selectedOption = hasCustomizations ? 'CUSTOM' : effectivePrivilege;
 
         return (
           <EuiComboBox
@@ -303,17 +313,6 @@ export class FeatureTable extends Component<Props, State> {
             singleSelection={{ asPlainText: true }}
             onChange={this.onChange(featureId)}
             isClearable={false}
-          />
-        );
-
-        return (
-          // @ts-ignore missing name from typedef
-          <EuiButtonGroup
-            // @ts-ignore missing rowProps from typedef
-            name={`featurePrivilege_${featureId}`}
-            options={options}
-            idSelected={`${featureId}_${actualPrivilegeValue || NO_PRIVILEGE_VALUE}`}
-            onChange={this.onChange(featureId)}
           />
         );
       },
@@ -328,7 +327,6 @@ export class FeatureTable extends Component<Props, State> {
           return (
             <EuiButtonIcon
               aria-label="asdf"
-              isDisabled={this.props.disabled}
               iconType="arrowUp"
               onClick={() => this.toggleExpandFeature(feature.id)}
             />
@@ -337,7 +335,6 @@ export class FeatureTable extends Component<Props, State> {
         return (
           <EuiButtonIcon
             aria-label="asdf"
-            isDisabled={this.props.disabled}
             iconType="arrowDown"
             onClick={() => this.toggleExpandFeature(feature.id)}
           />
@@ -362,18 +359,39 @@ export class FeatureTable extends Component<Props, State> {
   };
 
   private getSubFeatureForm = (featureId: string) => {
+    const feature = this.props.features.find(f => f.id === featureId)!;
+    if (feature.privileges.custom && feature.privileges.custom.length > 0) {
+      return (
+        <SubFeatureForm
+          feature={this.props.features.find(f => f.id === featureId)!}
+          role={this.props.role}
+          spacesIndex={this.props.spacesIndex}
+          onChange={this.props.onChange}
+          privilegeCalculator={new POCPrivilegeCalculator(this.props.kibanaPrivileges)}
+          disabled={this.props.disabled}
+        />
+      );
+    }
+
     return (
-      <SubFeatureForm
-        feature={this.props.features.find(f => f.id === featureId)!}
-        role={this.props.role}
-        spacesIndex={this.props.spacesIndex}
-        onChange={this.props.onChange}
-        privilegeCalculator={new POCPrivilegeCalculator(this.props.kibanaPrivileges)}
-      />
+      <EuiText size="s">
+        <p>This feature does not support privilege customizations</p>
+      </EuiText>
     );
   };
 
   private getEnabledFeaturePrivileges = (featurePrivileges: string[], featureId: string) => {
+    const calc = new POCPrivilegeCalculator(this.props.kibanaPrivileges);
+    const inherited = calc.getInheritedFeaturePrivileges(
+      this.props.role.kibana,
+      this.props.role.kibana[this.props.spacesIndex].spaces,
+      featureId
+    );
+    return this.props.kibanaPrivileges
+      .getFeaturePrivileges()
+      .getPrivileges(featureId)
+      .filter(privilege => !inherited.includes(privilege));
+
     const { allowedPrivileges } = this.props;
 
     if (this.isConfiguringGlobalPrivileges()) {
@@ -390,7 +408,19 @@ export class FeatureTable extends Component<Props, State> {
   };
 
   private getPrivilegeExplanation = (featureId: string): PrivilegeExplanation => {
-    return { actualPrivilege: 'all' };
+    const calc = new POCPrivilegeCalculator(this.props.kibanaPrivileges);
+    const effective = calc.getEffectiveFeaturePrivileges(
+      this.props.role.kibana,
+      this.props.role.kibana[this.props.spacesIndex].spaces,
+      featureId
+    );
+    return {
+      actualPrivilege: effective.includes('all')
+        ? 'all'
+        : effective.includes('read')
+        ? 'read'
+        : NO_PRIVILEGE_VALUE,
+    };
     const { calculatedPrivileges } = this.props;
     const calculatedFeaturePrivileges = calculatedPrivileges.feature[featureId];
     if (calculatedFeaturePrivileges == null) {
@@ -401,14 +431,14 @@ export class FeatureTable extends Component<Props, State> {
   };
 
   private allowsNoneForPrivilegeAssignment = (featureId: string): boolean => {
-    return true;
-    const { allowedPrivileges } = this.props;
-    const allowedFeaturePrivileges = allowedPrivileges.feature[featureId];
-    if (allowedFeaturePrivileges == null) {
-      throw new Error('Unable to determine if none is allowed for a feature without privileges');
-    }
+    const calc = new POCPrivilegeCalculator(this.props.kibanaPrivileges);
+    const inherited = calc.getInheritedFeaturePrivileges(
+      this.props.role.kibana,
+      this.props.role.kibana[this.props.spacesIndex].spaces,
+      featureId
+    );
 
-    return allowedFeaturePrivileges.canUnassign;
+    return inherited.length === 0;
   };
 
   private onChangeAllFeaturePrivileges = (privilege: string) => {
