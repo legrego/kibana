@@ -26,20 +26,28 @@ export class FeatureRegistry {
       throw new Error(`Feature with id ${feature.id} is already registered.`);
     }
 
+    if (!feature.privileges || !feature.privileges.required) {
+      console.warn('skipping feature ' + feature.id);
+      return;
+    }
+
     const featureCopy: Feature = cloneDeep(feature as Feature);
 
-    this.features[feature.id] = applyAutomaticPrivilegeGrants(featureCopy as Feature);
+    this.features[feature.id] = feature; // applyAutomaticPrivilegeGrants(featureCopy as Feature);
   }
 
   public getAll(): Feature[] {
     this.locked = true;
-    return cloneDeep(Object.values(this.features));
+    return Object.values(this.features);
   }
 }
 
 function applyAutomaticPrivilegeGrants(feature: Feature): Feature {
-  const { all: allPrivilege, read: readPrivilege } = feature.privileges;
+  // const { all: allPrivilege, read: readPrivilege } = feature.privileges;
   const reservedPrivilege = feature.reserved ? feature.reserved.privilege : null;
+
+  const allPrivilege = feature.privileges.required.find(p => p.id === 'all')!;
+  const readPrivilege = feature.privileges.required.find(p => p.id === 'read')!;
 
   applyAutomaticAllPrivilegeGrants(allPrivilege, reservedPrivilege);
   applyAutomaticReadPrivilegeGrants(readPrivilege);

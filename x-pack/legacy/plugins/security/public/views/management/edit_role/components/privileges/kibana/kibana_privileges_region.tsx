@@ -7,9 +7,11 @@
 import { InjectedIntl } from '@kbn/i18n/react';
 import React, { Component } from 'react';
 import { UICapabilities } from 'ui/capabilities';
+import { FeatureViewModel } from '../../../../../../../../../../plugins/features/public/types';
 import { Space } from '../../../../../../../../spaces/common/model/space';
 import { Feature } from '../../../../../../../../../../plugins/features/server';
-import { KibanaPrivileges, Role } from '../../../../../../../common/model';
+import { Role } from '../../../../../../../common/model';
+import { KibanaPrivileges } from '../../../../../../../common/model/poc_kibana_privileges';
 import { KibanaPrivilegeCalculatorFactory } from '../../../../../../lib/kibana_privilege_calculator';
 import { RoleValidator } from '../../../lib/validate_role';
 import { CollapsiblePanel } from '../../collapsible_panel';
@@ -22,7 +24,7 @@ interface Props {
   spacesEnabled: boolean;
   spaces?: Space[];
   uiCapabilities: UICapabilities;
-  features: Feature[];
+  features: FeatureViewModel[];
   editable: boolean;
   kibanaPrivileges: KibanaPrivileges;
   onChange: (role: Role) => void;
@@ -56,14 +58,11 @@ export class KibanaPrivilegesRegion extends Component<Props, {}> {
       return <TransformErrorSection />;
     }
 
-    const privilegeCalculatorFactory = new KibanaPrivilegeCalculatorFactory(kibanaPrivileges);
-
     if (spacesEnabled) {
       return (
         <SpaceAwarePrivilegeSection
           kibanaPrivileges={kibanaPrivileges}
           role={role}
-          privilegeCalculatorFactory={privilegeCalculatorFactory}
           spaces={spaces}
           uiCapabilities={uiCapabilities}
           features={features}
@@ -75,10 +74,9 @@ export class KibanaPrivilegesRegion extends Component<Props, {}> {
     } else {
       return (
         <SimplePrivilegeSection
-          kibanaPrivileges={kibanaPrivileges}
+          kibanaPrivileges={kibanaPrivileges as any}
           features={features}
           role={role}
-          privilegeCalculatorFactory={privilegeCalculatorFactory}
           onChange={onChange}
           editable={editable}
           intl={this.props.intl}

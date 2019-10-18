@@ -39,10 +39,12 @@ function getCapabilitiesFromFeature(feature: Feature): FeatureCapabilities {
     };
   }
 
-  Object.values(feature.privileges).forEach(privilege => {
+  // TODO: enumerate optional privs too
+  [...feature.privileges.required].forEach(privilege => {
+    console.log({ feature: feature.id, privilege });
     UIFeatureCapabilities[feature.id] = {
       ...UIFeatureCapabilities[feature.id],
-      ...privilege.ui.reduce(
+      ...privilege.get().ui.reduce(
         (privilegeAcc, capability) => ({
           ...privilegeAcc,
           [capability]: true,

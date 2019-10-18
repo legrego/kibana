@@ -5,6 +5,7 @@
  */
 
 import { FeatureKibanaPrivileges, FeatureKibanaPrivilegesSet } from './feature_kibana_privileges';
+import { FeaturePrivilege } from './feature_privilege';
 
 /**
  * Interface for registering a feature.
@@ -98,7 +99,13 @@ export interface Feature<
    * ```
    * @see FeatureKibanaPrivileges
    */
-  privileges: TPrivileges;
+  privileges: {
+    required: FeaturePrivilege[];
+    optional?: Array<{
+      name: string;
+      privileges: FeaturePrivilege[];
+    }>;
+  };
 
   /**
    * Optional message to display on the Role Management screen when configuring permissions for this feature.

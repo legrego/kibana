@@ -22,14 +22,10 @@ import { get } from 'lodash';
 import React, { ChangeEvent, Component, Fragment, HTMLProps } from 'react';
 import { UICapabilities } from 'ui/capabilities';
 import { toastNotifications } from 'ui/notify';
+import { KibanaPrivileges } from '../../../../../common/model/poc_kibana_privileges';
 import { Space } from '../../../../../../spaces/common/model/space';
 import { Feature } from '../../../../../../../../plugins/features/server';
-import {
-  KibanaPrivileges,
-  RawKibanaPrivileges,
-  Role,
-  BuiltinESPrivileges,
-} from '../../../../../common/model';
+import { RawKibanaPrivileges, Role, BuiltinESPrivileges } from '../../../../../common/model';
 import {
   isReadOnlyRole,
   isReservedRole,

@@ -7,6 +7,8 @@
 import { IRouter } from '../../../../../src/core/server';
 import { LegacyAPI } from '../plugin';
 import { FeatureRegistry } from '../feature_registry';
+import { FeatureViewModel } from '../../public/types';
+import { Feature } from '..';
 
 /**
  * Describes parameters used to define HTTP routes.
@@ -24,13 +26,31 @@ export function defineRoutes({ router, featureRegistry, getLegacyAPI }: RouteDef
       const allFeatures = featureRegistry.getAll();
 
       return response.ok({
-        body: allFeatures.filter(
-          feature =>
-            !feature.validLicenses ||
-            !feature.validLicenses.length ||
-            getLegacyAPI().xpackInfo.license.isOneOf(feature.validLicenses)
-        ),
+        body: allFeatures
+          .filter(
+            feature =>
+              !feature.validLicenses ||
+              !feature.validLicenses.length ||
+              getLegacyAPI().xpackInfo.license.isOneOf(feature.validLicenses)
+          )
+          .map(featureToViewModel),
       });
     }
   );
+
+  function featureToViewModel(feature: Feature): FeatureViewModel {
+    const { required, optional = [] } = feature.privileges;
+    return {
+      ...feature,
+      privileges: {
+        required: required.map(rp => rp.get()),
+        optional: optional.map(op => {
+          return {
+            ...op,
+            privileges: op.privileges.map(opp => opp.get()),
+          };
+        }),
+      },
+    };
+  }
 }

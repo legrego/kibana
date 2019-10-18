@@ -5,6 +5,7 @@
  */
 import { i18n } from '@kbn/i18n';
 import { Feature } from './feature';
+import { FeaturePrivilege } from './feature_privilege';
 
 export interface BuildOSSFeaturesParams {
   savedObjectTypes: string[];
@@ -12,6 +13,114 @@ export interface BuildOSSFeaturesParams {
 }
 
 export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSSFeaturesParams) => {
+  const viewAlerts = new FeaturePrivilege({
+    id: 'view-alerts',
+    name: 'View Alerts',
+    savedObject: {
+      all: [],
+      read: ['alert'],
+    },
+    ui: ['viewAlerts'],
+  });
+
+  const muteAlerts = new FeaturePrivilege({
+    id: 'mute-alerts',
+    name: 'Mute Alerts',
+    savedObject: {
+      all: [],
+      read: ['alert'],
+    },
+    ui: ['viewAlerts', 'muteAlerts'],
+  });
+
+  const createAlerts = new FeaturePrivilege({
+    id: 'create-alerts',
+    name: 'Create Alerts',
+    savedObject: {
+      all: ['alert'],
+      read: [],
+    },
+    ui: ['viewAlerts', 'createAlerts'],
+  });
+  const readAlerts = new FeaturePrivilege({
+    id: 'read-alerts',
+    name: 'Read',
+    savedObject: {
+      all: [],
+      read: ['alert'],
+    },
+    ui: ['viewAlerts'],
+  });
+
+  const allAlerts = new FeaturePrivilege({
+    id: 'all-alerts',
+    name: 'All',
+    savedObject: {
+      all: ['alert'],
+      read: [],
+    },
+    ui: ['viewAlerts', 'createAlerts'],
+  });
+
+  const viewSavedSearch = new FeaturePrivilege({
+    id: 'view-saved-search',
+    name: 'View Saved Search',
+    savedObject: {
+      all: ['search'],
+      read: [],
+    },
+    ui: [],
+  });
+
+  const createSavedSearch = new FeaturePrivilege({
+    id: 'create-saved-search',
+    name: 'Create Saved Search',
+    savedObject: {
+      all: ['search'],
+      read: [],
+    },
+    ui: [],
+  });
+
+  const createShortUrl = new FeaturePrivilege({
+    id: 'create-short-url',
+    name: 'Create Short URL',
+    savedObject: {
+      all: ['url'],
+      read: [],
+    },
+    ui: ['createShortUrl'],
+  });
+
+  const discoverAll = new FeaturePrivilege(
+    {
+      id: 'all',
+      name: 'All',
+      savedObject: {
+        all: ['telemetry'],
+        read: ['config'],
+      },
+      ui: [],
+    },
+    createSavedSearch,
+    createShortUrl,
+    createAlerts
+  );
+
+  const discoverRead = new FeaturePrivilege(
+    {
+      id: 'read',
+      name: 'Read',
+      savedObject: {
+        all: [],
+        read: ['config', 'telemetry'],
+      },
+      ui: [],
+    },
+    viewSavedSearch,
+    viewAlerts
+  );
+
   return [
     {
       id: 'discover',
@@ -22,21 +131,19 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
       navLinkId: 'kibana:discover',
       app: ['kibana'],
       catalogue: ['discover'],
+
       privileges: {
-        all: {
-          savedObject: {
-            all: ['search', 'url', 'query'],
-            read: ['index-pattern'],
+        required: [discoverAll, discoverRead],
+        optional: [
+          {
+            name: 'Sharing',
+            privileges: [createShortUrl],
           },
-          ui: ['show', 'createShortUrl', 'save', 'saveQuery'],
-        },
-        read: {
-          savedObject: {
-            all: [],
-            read: ['index-pattern', 'search', 'query'],
+          {
+            name: 'Alerting',
+            privileges: [allAlerts, readAlerts, viewAlerts, createAlerts],
           },
-          ui: ['show'],
-        },
+        ],
       },
     },
     {
@@ -49,20 +156,27 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
       app: ['kibana', 'lens'],
       catalogue: ['visualize'],
       privileges: {
-        all: {
-          savedObject: {
-            all: ['visualization', 'url', 'query', 'lens'],
-            read: ['index-pattern', 'search'],
+        name: '',
+        privileges: [
+          {
+            id: 'all',
+            name: 'All',
+            savedObject: {
+              all: ['visualization', 'url', 'query', 'lens'],
+              read: ['index-pattern', 'search'],
+            },
+            ui: ['show', 'createShortUrl', 'delete', 'save', 'saveQuery'],
           },
-          ui: ['show', 'createShortUrl', 'delete', 'save', 'saveQuery'],
-        },
-        read: {
-          savedObject: {
-            all: [],
-            read: ['index-pattern', 'search', 'visualization', 'query', 'lens'],
+          {
+            id: 'read',
+            name: 'Read',
+            savedObject: {
+              all: [],
+              read: ['index-pattern', 'search', 'visualization', 'query', 'lens'],
+            },
+            ui: ['show'],
           },
-          ui: ['show'],
-        },
+        ],
       },
     },
     {

@@ -5,6 +5,7 @@
  */
 
 import { flatten, mapValues, uniq } from 'lodash';
+import { FeatureKibanaPrivileges } from '../../../../../../../plugins/features/server/feature_kibana_privileges';
 import { Feature } from '../../../../../../../plugins/features/server';
 import { XPackMainPlugin } from '../../../../../xpack_main/xpack_main';
 import { RawKibanaFeaturePrivileges, RawKibanaPrivileges } from '../../../../common/model';
@@ -13,6 +14,19 @@ import { featurePrivilegeBuilderFactory } from './feature_privilege_builder';
 
 export interface PrivilegesService {
   get(): RawKibanaPrivileges;
+}
+
+function* recFeaturePrivileges(g: Feature['privileges']): Generator<FeatureKibanaPrivileges> {
+  for (const p of g.required) {
+    yield p.get();
+  }
+  if (g.optional) {
+    for (const g2 of g.optional) {
+      for (const g3 of g2.privileges) {
+        yield g3.get();
+      }
+    }
+  }
 }
 
 export function privilegesFactory(actions: Actions, xpackMainPlugin: XPackMainPlugin) {
@@ -25,41 +39,50 @@ export function privilegesFactory(actions: Actions, xpackMainPlugin: XPackMainPl
 
       const allActions = uniq(
         flatten(
-          basePrivilegeFeatures.map(feature =>
-            Object.values(feature.privileges).reduce<string[]>((acc, privilege) => {
-              if (privilege.excludeFromBasePrivileges) {
-                return acc;
+          basePrivilegeFeatures.map(feature => {
+            const featureActions: string[] = [];
+            for (const fp of recFeaturePrivileges(feature.privileges)) {
+              if (!fp.excludeFromBasePrivileges) {
+                const privilegeActions = featurePrivilegeBuilder.getActions(fp, feature);
+                console.log(feature.id, fp.id, 'produced', privilegeActions);
+                featureActions.push(...privilegeActions);
               }
-
-              return [...acc, ...featurePrivilegeBuilder.getActions(privilege, feature)];
-            }, [])
-          )
+            }
+            return featureActions;
+          })
         )
       );
 
       const readActions = uniq(
         flatten(
-          basePrivilegeFeatures.map(feature =>
-            Object.entries(feature.privileges).reduce<string[]>((acc, [privilegeId, privilege]) => {
-              if (privilegeId !== 'read' || privilege.excludeFromBasePrivileges) {
-                return acc;
+          basePrivilegeFeatures.map(feature => {
+            const featureActions = [];
+            for (const fp of recFeaturePrivileges(feature.privileges)) {
+              if (fp.id === 'read' && !fp.excludeFromBasePrivileges) {
+                featureActions.push(...featurePrivilegeBuilder.getActions(fp, feature));
               }
-
-              return [...acc, ...featurePrivilegeBuilder.getActions(privilege, feature)];
-            }, [])
-          )
+            }
+            return featureActions;
+          })
         )
       );
 
       return {
         features: features.reduce((acc: RawKibanaFeaturePrivileges, feature: Feature) => {
-          if (Object.keys(feature.privileges).length > 0) {
-            acc[feature.id] = mapValues(feature.privileges, (privilege, privilegeId) => [
-              actions.login,
-              actions.version,
-              ...featurePrivilegeBuilder.getActions(privilege, feature),
-              ...(privilegeId === 'all' ? [actions.allHack] : []),
-            ]);
+          if (feature.privileges.required.length > 0) {
+            console.log('creating feature privs for ', feature.id);
+
+            acc[feature.id] = {};
+
+            for (const featurePrivilege of recFeaturePrivileges(feature.privileges)) {
+              console.log('inside generator loop for ', featurePrivilege.id);
+              acc[feature.id][featurePrivilege.id] = [
+                actions.login,
+                actions.version,
+                ...featurePrivilegeBuilder.getActions(featurePrivilege, feature),
+                ...(featurePrivilege.id === 'all' ? [actions.allHack] : []),
+              ];
+            }
           }
           return acc;
         }, {}),

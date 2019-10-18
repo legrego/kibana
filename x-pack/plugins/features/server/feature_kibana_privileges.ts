@@ -8,10 +8,11 @@
  * Feature privilege definition
  */
 export interface FeatureKibanaPrivileges {
-  /**
-   * Whether or not this specific privilege should be excluded from the base privileges.
-   */
-  excludeFromBasePrivileges?: boolean;
+  id: string;
+
+  name: string;
+
+  includeInBasePrivileges?: ['all'] | ['read'] | ['all', 'read'];
 
   /**
    * If this feature includes management sections, you can specify them here to control visibility of those

@@ -14,6 +14,7 @@ import {
 import { FormattedMessage, InjectedIntl } from '@kbn/i18n/react';
 import _ from 'lodash';
 import React, { Component } from 'react';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
 import { getSpaceColor } from '../../../../../../../../../spaces/public/lib/space_attributes';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
 import {
@@ -21,7 +22,6 @@ import {
   Role,
   RoleKibanaPrivilege,
 } from '../../../../../../../../common/model';
-import { KibanaPrivilegeCalculatorFactory } from '../../../../../../../lib/kibana_privilege_calculator';
 import {
   isGlobalPrivilegeDefinition,
   hasAssignedFeaturePrivileges,
@@ -35,7 +35,7 @@ const SPACES_DISPLAY_COUNT = 4;
 
 interface Props {
   role: Role;
-  privilegeCalculatorFactory: KibanaPrivilegeCalculatorFactory;
+  privilegeCalculator: POCPrivilegeCalculator;
   onChange: (role: Role) => void;
   onEdit: (spacesIndex: number) => void;
   displaySpaces: Space[];
@@ -73,13 +73,9 @@ export class PrivilegeSpaceTable extends Component<Props, State> {
   }
 
   private renderKibanaPrivileges = () => {
-    const { privilegeCalculatorFactory, displaySpaces, intl } = this.props;
+    const { displaySpaces, intl, privilegeCalculator } = this.props;
 
     const spacePrivileges = this.getSortedPrivileges();
-
-    const privilegeCalculator = privilegeCalculatorFactory.getInstance(this.props.role);
-
-    const effectivePrivileges = privilegeCalculator.calculateEffectivePrivileges(false);
 
     const rows: TableRow[] = spacePrivileges.map((spacePrivs, spacesIndex) => {
       const spaces = spacePrivs.spaces.map(
@@ -181,41 +177,51 @@ export class PrivilegeSpaceTable extends Component<Props, State> {
         field: 'privileges',
         name: 'Privileges',
         render: (privileges: RoleKibanaPrivilege, record: TableRow) => {
-          const effectivePrivilege = effectivePrivileges[record.spacesIndex];
-          const basePrivilege = effectivePrivilege.base;
+          const basePrivilege = privilegeCalculator.getEffectiveBasePrivilege(
+            this.props.role,
+            record.spacesIndex
+          );
 
-          if (effectivePrivilege.reserved != null && effectivePrivilege.reserved.length > 0) {
-            return <PrivilegeDisplay privilege={effectivePrivilege.reserved} />;
-          } else if (record.isGlobal) {
+          // TODO: Reserved
+
+          // TODO: rename explainAll.....
+          const explanation = privilegeCalculator.explainAllEffectiveFeaturePrivileges(
+            this.props.role,
+            record.spacesIndex
+          );
+
+          // if (effectivePrivilege.reserved != null && effectivePrivilege.reserved.length > 0) {
+          //   return <PrivilegeDisplay privilege={effectivePrivilege.reserved} />;
+          // } else
+
+          // TODO: Custom assignment value
+
+          if (record.isGlobal) {
             return (
-              <PrivilegeDisplay
-                privilege={
-                  hasAssignedFeaturePrivileges(privileges)
-                    ? CUSTOM_PRIVILEGE_VALUE
-                    : basePrivilege.actualPrivilege
-                }
-              />
+              <PrivilegeDisplay privilege={basePrivilege ? basePrivilege.id : NO_PRIVILEGE_VALUE} />
             );
           } else {
-            const hasNonSupersededCustomizations = Object.keys(privileges.feature).some(
-              featureId => {
-                const featureEffectivePrivilege = effectivePrivilege.feature[featureId];
-                return (
-                  featureEffectivePrivilege &&
-                  featureEffectivePrivilege.directlyAssignedFeaturePrivilegeMorePermissiveThanBase
-                );
+            const hasNonSupersededCustomizations = Object.entries(privileges.feature).some(
+              ([featureId, assignedFeaturePrivileges]) => {
+                const featureExp = explanation[featureId] || {};
+                return assignedFeaturePrivileges.some(afp => {
+                  const globalBaseAssigns = featureExp[afp].global.base.length > 0;
+                  const spaceBaseAssigns = featureExp[afp].space.base.length > 0;
+                  const spaceFeatureAssigns = featureExp[afp].space.feature.length > 0;
+                  return !globalBaseAssigns && !spaceBaseAssigns && !spaceFeatureAssigns;
+                });
               }
             );
 
             const showCustom =
               hasNonSupersededCustomizations ||
-              (hasAssignedFeaturePrivileges(privileges) &&
-                effectivePrivilege.base.actualPrivilege === NO_PRIVILEGE_VALUE);
+              (hasAssignedFeaturePrivileges(privileges) && !basePrivilege);
 
             return (
               <PrivilegeDisplay
-                explanation={hasNonSupersededCustomizations ? undefined : basePrivilege}
-                privilege={showCustom ? CUSTOM_PRIVILEGE_VALUE : basePrivilege.actualPrivilege}
+                privilege={
+                  showCustom ? CUSTOM_PRIVILEGE_VALUE : basePrivilege ? basePrivilege.id : 'ON NOES'
+                }
               />
             );
           }

@@ -15,10 +15,12 @@ import { FormattedMessage, InjectedIntl, injectI18n } from '@kbn/i18n/react';
 import _ from 'lodash';
 import React, { Component, Fragment } from 'react';
 import { UICapabilities } from 'ui/capabilities';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
+import { FeatureViewModel } from '../../../../../../../../../../../plugins/features/public/types';
+import { Role } from '../../../../../../../../common/model';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
 import { Feature } from '../../../../../../../../../../../plugins/features/server';
-import { KibanaPrivileges, Role } from '../../../../../../../../common/model';
-import { KibanaPrivilegeCalculatorFactory } from '../../../../../../../lib/kibana_privilege_calculator';
+import { KibanaPrivileges } from '../../../../../../../../common/model/poc_kibana_privileges';
 import { isReservedRole } from '../../../../../../../lib/role_utils';
 import { RoleValidator } from '../../../../lib/validate_role';
 import { PrivilegeMatrix } from './privilege_matrix';
@@ -28,14 +30,13 @@ import { PrivilegeSpaceTable } from './privilege_space_table';
 interface Props {
   kibanaPrivileges: KibanaPrivileges;
   role: Role;
-  privilegeCalculatorFactory: KibanaPrivilegeCalculatorFactory;
   spaces: Space[];
   onChange: (role: Role) => void;
   editable: boolean;
   validator: RoleValidator;
   intl: InjectedIntl;
   uiCapabilities: UICapabilities;
-  features: Feature[];
+  features: FeatureViewModel[];
 }
 
 interface State {
@@ -69,7 +70,7 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
   }
 
   public render() {
-    const { uiCapabilities, privilegeCalculatorFactory } = this.props;
+    const { uiCapabilities } = this.props;
 
     if (!uiCapabilities.spaces.manage) {
       return (
@@ -119,8 +120,8 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
         {this.state.showSpacePrivilegeEditor && (
           <PrivilegeSpaceForm
             role={this.props.role}
-            privilegeCalculatorFactory={privilegeCalculatorFactory}
             kibanaPrivileges={this.props.kibanaPrivileges}
+            privilegeCalculator={new POCPrivilegeCalculator(this.props.kibanaPrivileges)}
             features={this.props.features}
             intl={this.props.intl}
             onChange={this.onSpacesPrivilegeChange}
@@ -143,8 +144,8 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
       const table = (
         <PrivilegeSpaceTable
           role={this.props.role}
+          privilegeCalculator={new POCPrivilegeCalculator(this.props.kibanaPrivileges)}
           displaySpaces={this.getDisplaySpaces()}
-          privilegeCalculatorFactory={this.props.privilegeCalculatorFactory}
           onChange={this.props.onChange}
           onEdit={this.onEditSpacesPrivileges}
           intl={this.props.intl}
@@ -208,9 +209,7 @@ class SpaceAwarePrivilegeSectionUI extends Component<Props, State> {
     const viewMatrixButton = (
       <PrivilegeMatrix
         role={this.props.role}
-        calculatedPrivileges={this.props.privilegeCalculatorFactory
-          .getInstance(this.props.role)
-          .calculateEffectivePrivileges()}
+        calculatedPrivileges={{}}
         features={this.props.features}
         spaces={this.getDisplaySpaces()}
         intl={this.props.intl}

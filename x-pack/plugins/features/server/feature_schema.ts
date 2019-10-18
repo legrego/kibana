@@ -59,10 +59,11 @@ const schema = Joi.object({
     .required(),
   management: managementSchema,
   catalogue: catalogueSchema,
-  privileges: Joi.object({
-    all: privilegeSchema,
-    read: privilegeSchema,
-  }).required(),
+  privileges: Joi.any(),
+  // privileges: Joi.object({
+  //   all: privilegeSchema,
+  //   read: privilegeSchema,
+  // }).required(),
   privilegesTooltip: Joi.string(),
   reserved: Joi.object({
     privilege: privilegeSchema.required(),
@@ -75,6 +76,7 @@ export function validateFeature(feature: FeatureWithAllOrReadPrivileges) {
   if (validateResult.error) {
     throw validateResult.error;
   }
+  return;
   // the following validation can't be enforced by the Joi schema, since it'd require us looking "up" the object graph for the list of valid value, which they explicitly forbid.
   const { app = [], management = {}, catalogue = [] } = feature;
 

@@ -24,6 +24,7 @@ export function compareActions(actionSet1: string[], actionSet2: string[]) {
   if (areActionsFullyCovered(actionSet2, actionSet1)) {
     return 1;
   }
+  return 0;
   throw new Error(
     `Non-comparable action sets! Expected one set of actions to be a subset of the other!`
   );

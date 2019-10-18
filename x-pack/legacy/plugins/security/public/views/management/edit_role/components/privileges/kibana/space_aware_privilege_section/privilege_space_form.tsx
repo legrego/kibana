@@ -24,12 +24,13 @@ import {
 } from '@elastic/eui';
 import { FormattedMessage, InjectedIntl } from '@kbn/i18n/react';
 import React, { Component, Fragment } from 'react';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
-import { Feature } from '../../../../../../../../../../../plugins/features/server';
-import { KibanaPrivileges, Role } from '../../../../../../../../common/model';
+import { FeatureViewModel } from '../../../../../../../../../../../plugins/features/public/types';
+import { Role } from '../../../../../../../../common/model';
+import { KibanaPrivileges } from '../../../../../../../../common/model/poc_kibana_privileges';
 import {
   AllowedPrivilege,
-  KibanaPrivilegeCalculatorFactory,
   PrivilegeExplanation,
 } from '../../../../../../../lib/kibana_privilege_calculator';
 import { hasAssignedFeaturePrivileges } from '../../../../../../../lib/privilege_utils';
@@ -40,9 +41,9 @@ import { SpaceSelector } from './space_selector';
 
 interface Props {
   role: Role;
-  privilegeCalculatorFactory: KibanaPrivilegeCalculatorFactory;
   kibanaPrivileges: KibanaPrivileges;
-  features: Feature[];
+  privilegeCalculator: POCPrivilegeCalculator;
+  features: FeatureViewModel[];
   spaces: Space[];
   editingIndex: number;
   onChange: (role: Role) => void;
@@ -129,18 +130,7 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
   }
 
   private getForm = () => {
-    const { intl, spaces, privilegeCalculatorFactory } = this.props;
-
-    const privilegeCalculator = privilegeCalculatorFactory.getInstance(this.state.role);
-
-    const calculatedPrivileges = privilegeCalculator.calculateEffectivePrivileges()[
-      this.state.editingIndex
-    ];
-    const allowedPrivileges = privilegeCalculator.calculateAllowedPrivileges()[
-      this.state.editingIndex
-    ];
-
-    const baseExplanation = calculatedPrivileges.base;
+    const { intl, spaces } = this.props;
 
     const hasSelectedSpaces = this.state.selectedSpaceIds.length > 0;
 
@@ -177,7 +167,7 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
             options={[
               {
                 value: 'basePrivilege_custom',
-                disabled: !this.canCustomizeFeaturePrivileges(baseExplanation, allowedPrivileges),
+                disabled: false, // !this.canCustomizeFeaturePrivileges(baseExplanation, allowedPrivileges),
                 inputDisplay: (
                   <EuiText>
                     <FormattedMessage
@@ -205,7 +195,7 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
               },
               {
                 value: 'basePrivilege_read',
-                disabled: !allowedPrivileges.base.privileges.includes('read'),
+                disabled: false, // !allowedPrivileges.base.privileges.includes('read'),
                 inputDisplay: (
                   <EuiText>
                     <FormattedMessage
@@ -260,7 +250,7 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
               },
             ]}
             hasDividers
-            valueOfSelected={this.getDisplayedBasePrivilege(allowedPrivileges, baseExplanation)}
+            valueOfSelected={this.getDisplayedBasePrivilege()}
             disabled={!hasSelectedSpaces}
           />
         </EuiFormRow>
@@ -282,10 +272,8 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
         <FeatureTable
           role={this.state.role}
           features={this.props.features}
-          calculatedPrivileges={calculatedPrivileges}
-          allowedPrivileges={allowedPrivileges}
-          rankedFeaturePrivileges={privilegeCalculator.rankedFeaturePrivileges}
           intl={this.props.intl}
+          privilegeCalculator={this.props.privilegeCalculator}
           onChange={this.onFeaturePrivilegesChange}
           onChangeAll={this.onChangeAllFeaturePrivileges}
           kibanaPrivileges={this.props.kibanaPrivileges}
@@ -478,13 +466,14 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
     });
   };
 
-  private getDisplayedBasePrivilege = (
-    allowedPrivileges: AllowedPrivilege,
-    explanation: PrivilegeExplanation
-  ) => {
-    let displayedBasePrivilege = explanation.actualPrivilege;
+  private getDisplayedBasePrivilege = () => {
+    const effectiveBasePrivilege = this.props.privilegeCalculator.getEffectiveBasePrivilege(
+      this.state.role,
+      this.state.editingIndex
+    );
 
-    if (this.canCustomizeFeaturePrivileges(explanation, allowedPrivileges)) {
+    // if (this.canCustomizeFeaturePrivileges(explanation, allowedPrivileges)) {
+    if (true) {
       const form = this.state.role.kibana[this.state.editingIndex];
 
       if (
@@ -492,11 +481,11 @@ export class PrivilegeSpaceForm extends Component<Props, State> {
         form.base.length === 0 ||
         this.state.isCustomizingFeaturePrivileges
       ) {
-        displayedBasePrivilege = CUSTOM_PRIVILEGE_VALUE;
+        return `basePrivilege_${CUSTOM_PRIVILEGE_VALUE}`;
       }
     }
 
-    return displayedBasePrivilege ? `basePrivilege_${displayedBasePrivilege}` : undefined;
+    return effectiveBasePrivilege ? `basePrivilege_${effectiveBasePrivilege.id}` : undefined;
   };
 
   private canCustomizeFeaturePrivileges = (

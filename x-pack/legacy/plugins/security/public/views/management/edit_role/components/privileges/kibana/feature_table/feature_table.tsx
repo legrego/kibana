@@ -9,7 +9,6 @@ import {
   EuiButtonGroup,
   EuiIcon,
   EuiIconTip,
-  // @ts-ignore
   EuiInMemoryTable,
   EuiText,
   IconType,
@@ -17,8 +16,11 @@ import {
 import { FormattedMessage, InjectedIntl } from '@kbn/i18n/react';
 import _ from 'lodash';
 import React, { Component } from 'react';
-import { Feature } from '../../../../../../../../../../../plugins/features/server';
-import { FeaturesPrivileges, KibanaPrivileges, Role } from '../../../../../../../../common/model';
+import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calculator/poc_privilege_calculator';
+import { KibanaPrivileges } from '../../../../../../../../common/model/poc_kibana_privileges';
+import { FeatureViewModel } from '../../../../../../../../../../../plugins/features/public/types';
+import { FeaturesPrivileges, Role } from '../../../../../../../../common/model';
+import { Privilege } from '../../../../../../../../common/model/poc_kibana_privileges/privilege_instance';
 import {
   AllowedPrivilege,
   CalculatedPrivilege,
@@ -28,13 +30,12 @@ import { isGlobalPrivilegeDefinition } from '../../../../../../../lib/privilege_
 import { NO_PRIVILEGE_VALUE } from '../../../../lib/constants';
 import { PrivilegeDisplay } from '../space_aware_privilege_section/privilege_display';
 import { ChangeAllPrivilegesControl } from './change_all_privileges';
+import { PrivilegeCombobox } from './privilege_combobox';
 
 interface Props {
   role: Role;
-  features: Feature[];
-  calculatedPrivileges: CalculatedPrivilege;
-  allowedPrivileges: AllowedPrivilege;
-  rankedFeaturePrivileges: FeaturesPrivileges;
+  features: FeatureViewModel[];
+  privilegeCalculator: POCPrivilegeCalculator;
   kibanaPrivileges: KibanaPrivileges;
   intl: InjectedIntl;
   spacesIndex: number;
@@ -43,23 +44,31 @@ interface Props {
   disabled?: boolean;
 }
 
-interface TableFeature extends Feature {
-  hasAnyPrivilegeAssigned: boolean;
+interface State {
+  expandedFeatures: string[];
 }
 
 interface TableRow {
-  feature: TableFeature;
+  featureId: string;
+  feature: FeatureViewModel;
   role: Role;
 }
 
-export class FeatureTable extends Component<Props, {}> {
+export class FeatureTable extends Component<Props, State> {
   public static defaultProps = {
     spacesIndex: -1,
     showLocks: true,
   };
 
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      expandedFeatures: ['discover'],
+    };
+  }
+
   public render() {
-    const { role, features, calculatedPrivileges, rankedFeaturePrivileges } = this.props;
+    const { role, features } = this.props;
 
     const items: TableRow[] = features
       .sort((feature1, feature2) => {
@@ -80,16 +89,9 @@ export class FeatureTable extends Component<Props, {}> {
         return 0;
       })
       .map(feature => {
-        const calculatedFeaturePrivileges = calculatedPrivileges.feature[feature.id];
-        const hasAnyPrivilegeAssigned = Boolean(
-          calculatedFeaturePrivileges &&
-            calculatedFeaturePrivileges.actualPrivilege !== NO_PRIVILEGE_VALUE
-        );
         return {
-          feature: {
-            ...feature,
-            hasAnyPrivilegeAssigned,
-          },
+          featureId: feature.id,
+          feature,
           role,
         };
       });
@@ -97,7 +99,9 @@ export class FeatureTable extends Component<Props, {}> {
     // TODO: This simply grabs the available privileges from the first feature we encounter.
     // As of now, features can have 'all' and 'read' as available privileges. Once that assumption breaks,
     // this will need updating. This is a simplifying measure to enable the new UI.
-    const availablePrivileges = Object.values(rankedFeaturePrivileges)[0];
+    const availablePrivileges = _.uniq(
+      features.map(feature => feature.privileges.required).flat()
+    ).map(rp => rp.name);
 
     return (
       // @ts-ignore missing responsive from typedef
@@ -105,6 +109,20 @@ export class FeatureTable extends Component<Props, {}> {
         // @ts-ignore missing rowProps from typedef
         responsive={false}
         columns={this.getColumns(availablePrivileges)}
+        itemId={'featureId'}
+        // itemIdToExpandedRowMap={this.state.expandedFeatures.reduce((acc, fid) => {
+        //   return {
+        //     ...acc,
+        //     [fid]: (
+        //       <SubFeatureForm
+        //         spacesIndex={this.props.spacesIndex}
+        //         feature={this.props.features.find(f => f.id === fid)!}
+        //         onChange={() => null}
+        //         role={this.props.role}
+        //       />
+        //     ),
+        //   };
+        // }, {})}
         items={items}
       />
     );
@@ -126,7 +144,7 @@ export class FeatureTable extends Component<Props, {}> {
         id: 'xpack.security.management.editRole.featureTable.enabledRoleFeaturesFeatureColumnTitle',
         defaultMessage: 'Feature',
       }),
-      render: (feature: TableFeature) => {
+      render: (feature: FeatureViewModel) => {
         let tooltipElement = null;
         if (feature.privilegesTooltip) {
           const tooltipContent = (
@@ -177,9 +195,7 @@ export class FeatureTable extends Component<Props, {}> {
           return <EuiText size={'s'}>{reserved.description}</EuiText>;
         }
 
-        const featurePrivileges = this.props.kibanaPrivileges
-          .getFeaturePrivileges()
-          .getPrivileges(featureId);
+        const featurePrivileges = this.props.kibanaPrivileges.getFeaturePrivileges(featureId);
 
         if (featurePrivileges.length === 0) {
           return null;
@@ -190,11 +206,13 @@ export class FeatureTable extends Component<Props, {}> {
           featureId
         );
 
-        const privilegeExplanation = this.getPrivilegeExplanation(featureId);
-
         const allowsNone = this.allowsNoneForPrivilegeAssignment(featureId);
 
-        const actualPrivilegeValue = privilegeExplanation.actualPrivilege;
+        const actualPrivilegeValue = this.props.privilegeCalculator.getEffectiveFeaturePrivileges(
+          this.props.role,
+          this.props.spacesIndex,
+          featureId
+        );
 
         const canChangePrivilege =
           !this.props.disabled && (allowsNone || enabledFeaturePrivileges.length > 1);
@@ -213,16 +231,23 @@ export class FeatureTable extends Component<Props, {}> {
 
           return (
             <PrivilegeDisplay
-              privilege={actualPrivilegeValue}
-              explanation={privilegeExplanation}
+              privilege={actualPrivilegeValue.map(v => v.id)}
               tooltipContent={
-                assignedBasePrivilege && actualPrivilegeValue === NO_PRIVILEGE_VALUE
+                assignedBasePrivilege && actualPrivilegeValue.length === 0
                   ? excludedFromBasePrivilegsTooltip
                   : undefined
               }
             />
           );
         }
+
+        return (
+          <PrivilegeCombobox
+            feature={record.feature as any}
+            selectedPrivileges={actualPrivilegeValue.map(p => p.id)}
+            onChange={newPrivileges => this.props.onChange(record.feature.id, newPrivileges)}
+          />
+        );
 
         const options = availablePrivileges.map(priv => {
           return {
@@ -252,7 +277,9 @@ export class FeatureTable extends Component<Props, {}> {
     },
   ];
 
-  private getEnabledFeaturePrivileges = (featurePrivileges: string[], featureId: string) => {
+  private getEnabledFeaturePrivileges = (featurePrivileges: Privilege[], featureId: string) => {
+    return featurePrivileges;
+
     const { allowedPrivileges } = this.props;
 
     if (this.isConfiguringGlobalPrivileges()) {
@@ -269,6 +296,9 @@ export class FeatureTable extends Component<Props, {}> {
   };
 
   private getPrivilegeExplanation = (featureId: string): PrivilegeExplanation => {
+    return {
+      actualPrivilege: '????',
+    };
     const { calculatedPrivileges } = this.props;
     const calculatedFeaturePrivileges = calculatedPrivileges.feature[featureId];
     if (calculatedFeaturePrivileges == null) {
@@ -279,13 +309,13 @@ export class FeatureTable extends Component<Props, {}> {
   };
 
   private allowsNoneForPrivilegeAssignment = (featureId: string): boolean => {
-    const { allowedPrivileges } = this.props;
-    const allowedFeaturePrivileges = allowedPrivileges.feature[featureId];
-    if (allowedFeaturePrivileges == null) {
-      throw new Error('Unable to determine if none is allowed for a feature without privileges');
-    }
+    // TODO: calculating too much here
+    const exp = this.props.privilegeCalculator.explainAllEffectiveFeaturePrivileges(
+      this.props.role,
+      this.props.spacesIndex
+    );
 
-    return allowedFeaturePrivileges.canUnassign;
+    return true;
   };
 
   private onChangeAllFeaturePrivileges = (privilege: string) => {
