@@ -19,7 +19,6 @@ import { POCPrivilegeCalculator } from 'plugins/security/lib/poc_privilege_calcu
 import { FeatureViewModel } from '../../../../../../../../../../../plugins/features/public/types';
 import { Role } from '../../../../../../../../common/model';
 import { Space } from '../../../../../../../../../spaces/common/model/space';
-import { Feature } from '../../../../../../../../../../../plugins/features/server';
 import { KibanaPrivileges } from '../../../../../../../../common/model/poc_kibana_privileges';
 import { isReservedRole } from '../../../../../../../lib/role_utils';
 import { RoleValidator } from '../../../../lib/validate_role';
