@@ -14,6 +14,7 @@ export class PrivilegeCollection {
   }
 
   public grantsPrivilege(privilege: Privilege) {
+    console.log('grantsPrivilege', this.actions, privilege);
     return this.checkActions(this.actions, privilege.actions);
   }
 

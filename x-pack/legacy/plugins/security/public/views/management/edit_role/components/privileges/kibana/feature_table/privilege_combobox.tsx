@@ -5,17 +5,19 @@
  */
 
 import React from 'react';
-import { EuiComboBox } from '@elastic/eui';
+import { EuiText, EuiIcon, EuiComboBox } from '@elastic/eui';
 import { FeatureViewModel } from '../../../../../../../../../../../plugins/features/public/types';
 
 interface Props {
   feature: FeatureViewModel;
+  inheritedPrivileges?: string[];
+  effectivePrivileges: string[];
   selectedPrivileges: string[];
   onChange: (privileges: string[]) => void;
 }
 
 export const PrivilegeCombobox = (props: Props) => {
-  const { feature } = props;
+  const { feature, effectivePrivileges, inheritedPrivileges = [] } = props;
   const { required, optional } = feature.privileges;
   const requiredGroup = {
     label: feature.name,
@@ -23,6 +25,7 @@ export const PrivilegeCombobox = (props: Props) => {
       return {
         id: rp.id,
         label: rp.name,
+        disabled: effectivePrivileges.includes(rp.id),
       };
     }),
   };
@@ -46,11 +49,13 @@ export const PrivilegeCombobox = (props: Props) => {
     return {
       label: o.name,
       options: o.privileges.map(op => {
+        const isInherited = effectivePrivileges.includes(op.id);
         return {
           id: op.id,
           label: `${o.name} ${op.name}`,
+          isInherited,
           displayLabel: op.name,
-          disabled: !enableOptionalPrivileges,
+          disabled: !enableOptionalPrivileges || isInherited,
         };
       }),
     };
@@ -66,7 +71,15 @@ export const PrivilegeCombobox = (props: Props) => {
       onChange={onChange}
       selectedOptions={selectedOptions}
       renderOption={option => {
-        return option.displayLabel || option.label;
+        const labelText = option.displayLabel || option.label;
+        if (option.isInherited) {
+          return (
+            <span>
+              <EuiIcon size="s" type="check" /> {labelText}
+            </span>
+          );
+        }
+        return labelText;
       }}
     />
   );

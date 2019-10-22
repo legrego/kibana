@@ -66,8 +66,8 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
     id: 'view-saved-search',
     name: 'View Saved Search',
     savedObject: {
-      all: ['search'],
-      read: [],
+      all: [],
+      read: ['search'],
     },
     ui: [],
   });
@@ -92,6 +92,20 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
     ui: ['createShortUrl'],
   });
 
+  const discoverRead = new FeaturePrivilege(
+    {
+      id: 'read',
+      name: 'Read',
+      savedObject: {
+        all: [],
+        read: ['config', 'telemetry'],
+      },
+      ui: [],
+    },
+    viewSavedSearch,
+    viewAlerts
+  );
+
   const discoverAll = new FeaturePrivilege(
     {
       id: 'all',
@@ -105,20 +119,6 @@ export const buildOSSFeatures = ({ savedObjectTypes, includeTimelion }: BuildOSS
     createSavedSearch,
     createShortUrl,
     createAlerts
-  );
-
-  const discoverRead = new FeaturePrivilege(
-    {
-      id: 'read',
-      name: 'Read',
-      savedObject: {
-        all: [],
-        read: ['config', 'telemetry'],
-      },
-      ui: [],
-    },
-    viewSavedSearch,
-    viewAlerts
   );
 
   return [

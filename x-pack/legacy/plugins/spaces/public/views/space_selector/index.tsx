@@ -21,8 +21,10 @@ import { SpaceSelector } from './space_selector';
 const module = uiModules.get('spaces_selector', []);
 module.controller(
   'spacesSelectorController',
-  ($scope: any, spaces: Space[], serverBasePath: string) => {
+  ($scope: any, spaces: Space[], serverBasePath: string, $http) => {
     const domNode = document.getElementById('spaceSelectorRoot');
+
+    $http.get('/api/spaces/space/default');
 
     const spacesManager = new SpacesManager(serverBasePath);
 

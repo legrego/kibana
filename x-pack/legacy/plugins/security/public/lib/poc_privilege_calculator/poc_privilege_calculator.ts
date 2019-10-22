@@ -45,13 +45,17 @@ export class POCPrivilegeCalculator {
     const collection = this.kibanaPrivileges.createCollectionFromRoleKibanaPrivileges(entries);
 
     return this.kibanaPrivileges.getFeaturePrivileges(featureId).filter(privilege => {
-      return collection.grantsPrivilege(privilege).hasAllRequested;
+      const { hasAllRequested, missing } = collection.grantsPrivilege(privilege);
+      console.log({ featureId, privilege, hasAllRequested, missing });
+      return hasAllRequested;
     });
   }
 
   public getInheritedFeaturePrivileges(role: Role, privilegeIndex: number, featureId: string) {
     const assignedFeaturePrivileges = role.kibana[privilegeIndex];
-    const otherPrivileges = role.kibana.filter(kp => kp !== assignedFeaturePrivileges);
+    const otherPrivileges = role.kibana.filter(
+      kp => kp !== assignedFeaturePrivileges && this.isGlobalPrivilege(kp)
+    );
     const collection = this.kibanaPrivileges.createCollectionFromRoleKibanaPrivileges(
       otherPrivileges
     );
@@ -141,7 +145,7 @@ export class POCPrivilegeCalculator {
     const collection = this.kibanaPrivileges.createCollectionFromRoleKibanaPrivileges([entry]);
 
     const featurePrivileges = this.kibanaPrivileges.getFeaturePrivileges(featureId);
-    return featurePrivileges.filter(fp => collection.grantsPrivilege(fp));
+    return featurePrivileges.filter(fp => collection.grantsPrivilege(fp).hasAllRequested);
   }
 
   private getAssignedPrivilegesWithoutCandidateFeaturePrivilege(
