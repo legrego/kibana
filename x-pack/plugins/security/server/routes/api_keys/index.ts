@@ -5,12 +5,14 @@
  */
 
 import { defineGetApiKeysRoutes } from './get';
+import { definePostApiKeysRoutes } from './post';
 import { defineCheckPrivilegesRoutes } from './privileges';
 import { defineInvalidateApiKeysRoutes } from './invalidate';
 import { RouteDefinitionParams } from '..';
 
 export function defineApiKeysRoutes(params: RouteDefinitionParams) {
   defineGetApiKeysRoutes(params);
+  definePostApiKeysRoutes(params);
   defineCheckPrivilegesRoutes(params);
   defineInvalidateApiKeysRoutes(params);
 }

@@ -5,16 +5,28 @@
  */
 
 import React, { Fragment } from 'react';
-import { EuiEmptyPrompt, EuiButton, EuiLink } from '@elastic/eui';
+import { EuiEmptyPrompt } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n/react';
+import { NotificationsStart } from 'src/core/public';
 import { DocumentationLinksService } from '../../documentation_links';
+import { CreateAPIKeyButton } from '../../create_api_key_button';
+import { APIKeysAPIClient } from '../../api_keys_api_client';
 
 interface Props {
   isAdmin: boolean;
   docLinks: DocumentationLinksService;
+  apiClient: PublicMethodsOf<APIKeysAPIClient>;
+  toasts: NotificationsStart['toasts'];
+  onAPIKeyCreated: () => void;
 }
 
-export const EmptyPrompt: React.FunctionComponent<Props> = ({ isAdmin, docLinks }) => (
+export const EmptyPrompt: React.FunctionComponent<Props> = ({
+  isAdmin,
+  docLinks,
+  apiClient,
+  toasts,
+  onAPIKeyCreated,
+}) => (
   <EuiEmptyPrompt
     iconType="managementApp"
     title={
@@ -37,28 +49,13 @@ export const EmptyPrompt: React.FunctionComponent<Props> = ({ isAdmin, docLinks 
         <p>
           <FormattedMessage
             id="xpack.security.management.apiKeys.table.emptyPromptDescription"
-            defaultMessage="You can create an {link} from Console."
-            values={{
-              link: (
-                <EuiLink href={`${docLinks.getCreateApiKeyDocUrl()}`} target="_blank">
-                  <FormattedMessage
-                    id="xpack.security.management.apiKeys.table.emptyPromptDocsLinkMessage"
-                    defaultMessage="API key"
-                  />
-                </EuiLink>
-              ),
-            }}
+            defaultMessage="You can create an API Key based on your account's privileges."
           />
         </p>
       </Fragment>
     }
     actions={
-      <EuiButton type="primary" href="#/dev_tools" data-test-subj="goToConsoleButton">
-        <FormattedMessage
-          id="xpack.security.management.apiKeys.table.emptyPromptConsoleButtonMessage"
-          defaultMessage="Go to Console"
-        />
-      </EuiButton>
+      <CreateAPIKeyButton apiClient={apiClient} onAPIKeyCreated={onAPIKeyCreated} toasts={toasts} />
     }
     data-test-subj="emptyPrompt"
   />

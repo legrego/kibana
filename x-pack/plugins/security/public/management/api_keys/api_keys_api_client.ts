@@ -39,4 +39,8 @@ export class APIKeysAPIClient {
       body: JSON.stringify({ apiKeys, isAdmin }),
     });
   }
+
+  public async createApiKey(name: string): Promise<ApiKey> {
+    return await this.http.post<ApiKey>(`${apiKeysUrl}/create/${encodeURIComponent(name)}`);
+  }
 }

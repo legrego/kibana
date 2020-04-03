@@ -37,6 +37,7 @@ import { PermissionDenied } from './permission_denied';
 import { EmptyPrompt } from './empty_prompt';
 import { NotEnabled } from './not_enabled';
 import { InvalidateProvider } from './invalidate_provider';
+import { CreateAPIKeyButton } from '../create_api_key_button';
 
 interface Props {
   notifications: NotificationsStart;
@@ -139,7 +140,13 @@ export class APIKeysGridPage extends Component<Props, State> {
     if (!isLoadingTable && apiKeys && apiKeys.length === 0) {
       return (
         <EuiPageContent>
-          <EmptyPrompt isAdmin={isAdmin} docLinks={this.props.docLinks} />
+          <EmptyPrompt
+            isAdmin={isAdmin}
+            docLinks={this.props.docLinks}
+            toasts={this.props.notifications.toasts}
+            apiClient={this.props.apiKeysAPIClient}
+            onAPIKeyCreated={() => this.reloadApiKeys()}
+          />
         </EuiPageContent>
       );
     }
@@ -248,7 +255,7 @@ export class APIKeysGridPage extends Component<Props, State> {
       ) : (
         undefined
       ),
-      toolsRight: (
+      toolsRight: [
         <EuiButton
           color="secondary"
           iconType="refresh"
@@ -259,8 +266,13 @@ export class APIKeysGridPage extends Component<Props, State> {
             id="xpack.security.management.apiKeys.table.reloadApiKeysButton"
             defaultMessage="Reload"
           />
-        </EuiButton>
-      ),
+        </EuiButton>,
+        <CreateAPIKeyButton
+          toasts={this.props.notifications.toasts}
+          apiClient={this.props.apiKeysAPIClient}
+          onAPIKeyCreated={() => this.reloadApiKeys()}
+        />,
+      ],
       box: {
         incremental: true,
       },
