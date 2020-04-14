@@ -1,0 +1,10 @@
+{
+  "id": "demoFeature",
+  "version": "8.0.0",
+  "kibanaVersion": "kibana",
+  "configPath": ["xpack", "demoFeature"],
+  "requiredPlugins": ["features", "licensing"],
+  "optionalPlugins": [],
+  "server": true,
+  "ui": true
+}
