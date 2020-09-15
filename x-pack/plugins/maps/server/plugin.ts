@@ -6,6 +6,7 @@
 import { i18n } from '@kbn/i18n';
 import { CoreSetup, CoreStart, Logger, Plugin, PluginInitializerContext } from 'src/core/server';
 import { take } from 'rxjs/operators';
+import { SecurityPluginSetup } from '../../security/server';
 import { PluginSetupContract as FeaturesPluginSetupContract } from '../../features/server';
 // @ts-ignore
 import { getEcommerceSavedObjects } from './sample_data/ecommerce_saved_objects';
@@ -35,6 +36,7 @@ interface SetupDeps {
   home: HomeServerPluginSetup;
   licensing: LicensingPluginSetup;
   mapsLegacy: MapsLegacyPluginSetup;
+  security?: SecurityPluginSetup;
 }
 
 export class MapsPlugin implements Plugin {
@@ -145,6 +147,51 @@ export class MapsPlugin implements Plugin {
       this._logger.warn('Maps app disabled by configuration');
       return;
     }
+
+    const router = core.http.createRouter();
+    router.get(
+      {
+        path: '/internal/maps/canUseFancyFeature',
+        validate: false,
+      },
+      async (context, request, response) => {
+        const { authz } = plugins.security ?? {};
+
+        // Is security enabled for this request?
+        const canAuthorize = authz?.mode.useRbacForRequest(request) ?? false;
+        if (!canAuthorize) {
+          return response.ok();
+        }
+
+        // Create function which can check privileges for this request.
+        // "Dynamically" means that this function will take the current space into account, if spaces is enabled.
+        // If spaces is disabled, then this will check privileges for all of Kibana, not just for a specific space.
+        // tl;dr it's magic
+        const checkPrivilegesWithRequest = authz!.checkPrivilegesDynamicallyWithRequest(request);
+
+        const authorizationResponse = await checkPrivilegesWithRequest({
+          // Check if this user can create index patterns
+          kibana: [authz!.actions.savedObject.get('index-pattern', 'create')],
+
+          // Check if this user can create elasticsearch indices matching `some-index`
+          elasticsearch: {
+            cluster: [],
+            index: {
+              ['some-index']: ['create'],
+            },
+          },
+        });
+
+        // Is the user authorized to perform all actions we've asked about?
+        if (authorizationResponse.hasAllRequested) {
+          // do the thing
+          return response.ok({ body: authorizationResponse });
+        }
+
+        // User isn't authorized. Don't do the thing
+        return response.forbidden({ body: JSON.stringify(authorizationResponse, null, 2) });
+      }
+    );
 
     let routesInitialized = false;
     licensing.license$.subscribe((license: ILicense) => {

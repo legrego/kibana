@@ -17,7 +17,7 @@
     "usageCollection",
     "share"
   ],
-  "optionalPlugins": ["home"],
+  "optionalPlugins": ["home", "security"],
   "ui": true,
   "server": true,
   "extraPublicDirs": ["common/constants"],
