@@ -6,6 +6,7 @@
  * Side Public License, v 1.
  */
 
+import type { SavedObjectAccessControl } from 'src/core/types';
 import type {
   ISavedObjectsRepository,
   ISavedObjectsPointInTimeFinder,
@@ -66,7 +67,16 @@ export interface SavedObjectsCreateOptions extends SavedObjectsBaseOptions {
    * Note: this can only be used for multi-namespace object types.
    */
   initialNamespaces?: string[];
+
+  /** The {@link SavedObjectAccessControl | accessControl} to associate with this saved object. */
+  accessControl?: SavedObjectAccessControl;
 }
+
+/**
+ *
+ * @public
+ */
+export type SavedObjectsBulkCreateOptions = Omit<SavedObjectsCreateOptions, 'accessControl'>;
 
 /**
  *
@@ -99,6 +109,9 @@ export interface SavedObjectsBulkCreateObject<T = unknown> {
    * Note: this can only be used for multi-namespace object types.
    */
   initialNamespaces?: string[];
+
+  /** The {@link SavedObjectAccessControl | accessControl} to associate with this saved object. */
+  accessControl?: SavedObjectAccessControl;
 }
 
 /**
@@ -185,6 +198,15 @@ export interface SavedObjectsFindResponse<T = unknown, A = unknown> {
   per_page: number;
   page: number;
   pit_id?: string;
+}
+
+/**
+ *
+ * @public
+ */
+export interface SavedObjectsCheckConflictsOptions extends SavedObjectsBaseOptions {
+  /** An {@link SavedObjectAccessControl | accessControl} which should be compatible with conflicting objects. */
+  accessControl?: SavedObjectAccessControl;
 }
 
 /**
@@ -412,7 +434,7 @@ export class SavedObjectsClient {
    */
   async checkConflicts(
     objects: SavedObjectsCheckConflictsObject[] = [],
-    options: SavedObjectsBaseOptions = {}
+    options: SavedObjectsCheckConflictsOptions = {}
   ): Promise<SavedObjectsCheckConflictsResponse> {
     return await this._repository.checkConflicts(objects, options);
   }

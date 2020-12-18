@@ -203,10 +203,11 @@ describe('features', () => {
 });
 
 // the `global` and `space` privileges behave very similarly, with the one exception being that
-// "global all" includes the ability to manage spaces. The following tests both groups at once...
+// "global all" includes the ability to manage spaces and saved objects. The following tests both groups at once...
 [
   {
     group: 'global',
+    expectManageSavedObjects: true,
     expectManageSpaces: true,
     expectGetFeatures: true,
     expectEnterpriseSearch: true,
@@ -214,6 +215,7 @@ describe('features', () => {
   },
   {
     group: 'space',
+    expectManageSavedObjects: false,
     expectManageSpaces: false,
     expectGetFeatures: false,
     expectEnterpriseSearch: false,
@@ -222,10 +224,11 @@ describe('features', () => {
 ].forEach(
   ({
     group,
+    expectManageSavedObjects,
     expectManageSpaces,
     expectGetFeatures,
-    expectEnterpriseSearch,
     expectDecryptedTelemetry,
+    expectEnterpriseSearch,
   }) => {
     describe(`${group}`, () => {
       test('actions defined in any feature privilege are included in `all`', () => {
@@ -284,6 +287,7 @@ describe('features', () => {
           actions.version,
           ...(expectDecryptedTelemetry ? [actions.api.get('decryptedTelemetry')] : []),
           ...(expectGetFeatures ? [actions.api.get('features')] : []),
+          ...(expectManageSavedObjects ? [actions.savedObject.manage] : []),
           ...(expectManageSpaces
             ? [
                 actions.space.manage,
@@ -489,7 +493,7 @@ describe('features', () => {
                       all: ['ignore-me-1', 'ignore-me-2'],
                       read: ['ignore-me-1', 'ignore-me-2'],
                     },
-                    ui: ['ignore-me-1'],
+                    ui: [],
                   },
                 },
               ],
@@ -516,6 +520,7 @@ describe('features', () => {
           actions.version,
           ...(expectDecryptedTelemetry ? [actions.api.get('decryptedTelemetry')] : []),
           ...(expectGetFeatures ? [actions.api.get('features')] : []),
+          ...(expectManageSavedObjects ? [actions.savedObject.manage] : []),
           ...(expectManageSpaces
             ? [
                 actions.space.manage,
@@ -590,6 +595,7 @@ describe('features', () => {
           actions.version,
           ...(expectDecryptedTelemetry ? [actions.api.get('decryptedTelemetry')] : []),
           ...(expectGetFeatures ? [actions.api.get('features')] : []),
+          ...(expectManageSavedObjects ? [actions.savedObject.manage] : []),
           ...(expectManageSpaces
             ? [
                 actions.space.manage,
@@ -665,6 +671,7 @@ describe('features', () => {
           actions.version,
           ...(expectDecryptedTelemetry ? [actions.api.get('decryptedTelemetry')] : []),
           ...(expectGetFeatures ? [actions.api.get('features')] : []),
+          ...(expectManageSavedObjects ? [actions.savedObject.manage] : []),
           ...(expectManageSpaces
             ? [
                 actions.space.manage,
@@ -949,6 +956,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -1119,6 +1127,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -1356,6 +1365,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -1499,6 +1509,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -1685,6 +1696,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -1817,6 +1829,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -2052,6 +2065,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),
@@ -2321,6 +2335,7 @@ describe('subFeatures', () => {
         actions.version,
         actions.api.get('decryptedTelemetry'),
         actions.api.get('features'),
+        actions.savedObject.manage,
         actions.space.manage,
         actions.ui.get('spaces', 'manage'),
         actions.ui.get('management', 'kibana', 'spaces'),

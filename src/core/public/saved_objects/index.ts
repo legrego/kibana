@@ -22,6 +22,7 @@ export type {
 export { SimpleSavedObject } from './simple_saved_object';
 export type { SavedObjectsStart } from './saved_objects_service';
 export type {
+  SavedObjectAccessControl,
   SavedObjectsBaseOptions,
   SavedObjectsFindOptions,
   SavedObjectsFindOptionsReference,

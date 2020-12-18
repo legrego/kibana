@@ -38,6 +38,7 @@ import React from 'react';
 import { RecursiveReadonly } from '@kbn/utility-types';
 import { Request } from '@hapi/hapi';
 import * as Rx from 'rxjs';
+import { SavedObjectAccessControl as SavedObjectAccessControl_2 } from 'src/core/types';
 import { SchemaTypeError } from '@kbn/config-schema';
 import { TransportRequestOptions } from '@elastic/elasticsearch/lib/Transport';
 import { TransportRequestParams } from '@elastic/elasticsearch/lib/Transport';
@@ -1105,6 +1106,8 @@ export type ResolveDeprecationResponse = {
 //
 // @public (undocumented)
 export interface SavedObject<T = unknown> {
+    // (undocumented)
+    accessControl?: SavedObjectAccessControl;
     attributes: T;
     coreMigrationVersion?: string;
     // (undocumented)
@@ -1117,6 +1120,11 @@ export interface SavedObject<T = unknown> {
     type: string;
     updated_at?: string;
     version?: string;
+}
+
+// @public
+export interface SavedObjectAccessControl {
+    owner: string;
 }
 
 // @public
@@ -1157,10 +1165,12 @@ export interface SavedObjectReference {
 
 // @public
 export interface SavedObjectReferenceWithContext {
+    accessControl?: SavedObjectAccessControl;
     id: string;
     inboundReferences: Array<{
         type: string;
         id: string;
+        accessControl?: SavedObjectAccessControl;
         name: string;
     }>;
     isMissing?: boolean;

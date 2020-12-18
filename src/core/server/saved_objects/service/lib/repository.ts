@@ -8,6 +8,7 @@
 
 import { omit, isObject } from 'lodash';
 import type { estypes } from '@elastic/elasticsearch';
+import { SavedObjectAccessControl } from 'src/core/types';
 import type { ElasticsearchClient } from '../../../elasticsearch/';
 import type { Logger } from '../../../logging';
 import { getRootPropertiesObjects, IndexMapping } from '../../mappings';
@@ -51,6 +52,8 @@ import {
   SavedObjectsRemoveReferencesToOptions,
   SavedObjectsRemoveReferencesToResponse,
   SavedObjectsResolveResponse,
+  SavedObjectsBulkCreateOptions,
+  SavedObjectsCheckConflictsOptions,
 } from '../saved_objects_client';
 import {
   SavedObject,
@@ -280,6 +283,7 @@ export class SavedObjectsRepository {
       originId,
       initialNamespaces,
       version,
+      accessControl,
     } = options;
     const namespace = normalizeNamespace(options.namespace);
 
@@ -321,6 +325,7 @@ export class SavedObjectsRepository {
       type,
       ...(savedObjectNamespace && { namespace: savedObjectNamespace }),
       ...(savedObjectNamespaces && { namespaces: savedObjectNamespaces }),
+      ...(accessControl && { accessControl }),
       originId,
       attributes,
       migrationVersion,
@@ -361,7 +366,7 @@ export class SavedObjectsRepository {
    */
   async bulkCreate<T = unknown>(
     objects: Array<SavedObjectsBulkCreateObject<T>>,
-    options: SavedObjectsCreateOptions = {}
+    options: SavedObjectsBulkCreateOptions = {}
   ): Promise<SavedObjectsBulkResponse<T>> {
     const { overwrite = false, refresh = DEFAULT_REFRESH_SETTING } = options;
     const namespace = normalizeNamespace(options.namespace);
@@ -393,6 +398,9 @@ export class SavedObjectsRepository {
 
       const method = object.id && overwrite ? 'index' : 'create';
       const requiresNamespacesCheck = object.id && this._registry.isMultiNamespace(object.type);
+      const requiresAccessControlCheck = false;
+      // object.id && overwrite && this._registry.isPrivate(object.type);
+      const requiresPreflightCheck = requiresNamespacesCheck || requiresAccessControlCheck;
 
       if (object.id == null) {
         object.id = SavedObjectsUtils.generateId();
@@ -403,7 +411,7 @@ export class SavedObjectsRepository {
         value: {
           method,
           object,
-          ...(requiresNamespacesCheck && { esRequestIndex: bulkGetRequestIndexCounter++ }),
+          ...(requiresPreflightCheck && { esRequestIndex: bulkGetRequestIndexCounter++ }),
         },
       };
     });
@@ -414,7 +422,7 @@ export class SavedObjectsRepository {
       .map(({ value: { object: { type, id } } }) => ({
         _id: this._serializer.generateRawId(namespace, type, id),
         _index: this.getIndexForType(type),
-        _source: ['type', 'namespaces'],
+        _source: ['type', 'namespaces', 'accessControl'],
       }));
     const bulkGetResponse = bulkGetDocs.length
       ? await this.client.mget<SavedObjectsRawDocSource>(
@@ -439,7 +447,7 @@ export class SavedObjectsRepository {
       let versionProperties;
       const {
         esRequestIndex,
-        object: { initialNamespaces, version, ...object },
+        object: { initialNamespaces, version, accessControl, ...object },
         method,
       } = expectedBulkGetResult.value;
       if (esRequestIndex !== undefined) {
@@ -456,6 +464,22 @@ export class SavedObjectsRepository {
               type,
               error: {
                 ...errorContent(SavedObjectsErrorHelpers.createConflictError(type, id)),
+                metadata: { isNotOverwritable: true },
+              },
+            },
+          };
+        }
+        if (docFound && !this.hasCompatibleAccessControl(actualResult, accessControl)) {
+          const { id, type } = object;
+          return {
+            tag: 'Left' as 'Left',
+            error: {
+              id,
+              type,
+              error: {
+                ...errorContent(
+                  SavedObjectsErrorHelpers.createIncompatibleAccessControlError(type, id)
+                ),
                 metadata: { isNotOverwritable: true },
               },
             },
@@ -485,6 +509,7 @@ export class SavedObjectsRepository {
             type: object.type,
             attributes: object.attributes,
             migrationVersion: object.migrationVersion,
+            accessControl,
             ...(savedObjectNamespace && { namespace: savedObjectNamespace }),
             ...(savedObjectNamespaces && { namespaces: savedObjectNamespaces }),
             updated_at: time,
@@ -547,7 +572,7 @@ export class SavedObjectsRepository {
    */
   async checkConflicts(
     objects: SavedObjectsCheckConflictsObject[] = [],
-    options: SavedObjectsBaseOptions = {}
+    options: SavedObjectsCheckConflictsOptions = {}
   ): Promise<SavedObjectsCheckConflictsResponse> {
     if (objects.length === 0) {
       return { errors: [] };
@@ -583,7 +608,7 @@ export class SavedObjectsRepository {
     const bulkGetDocs = expectedBulkGetResults.filter(isRight).map(({ value: { type, id } }) => ({
       _id: this._serializer.generateRawId(namespace, type, id),
       _index: this.getIndexForType(type),
-      _source: { includes: ['type', 'namespaces'] },
+      _source: { includes: ['type', 'namespaces', 'accessControl'] },
     }));
     const bulkGetResponse = bulkGetDocs.length
       ? await this.client.mget<SavedObjectsRawDocSource>(
@@ -606,15 +631,19 @@ export class SavedObjectsRepository {
       const { type, id, esRequestIndex } = expectedResult.value;
       const doc = bulkGetResponse?.body.docs[esRequestIndex];
       if (doc?.found) {
+        const isNotOverwritable =
+          // @ts-expect-error MultiGetHit._source is optional
+          !this.rawDocExistsInNamespace(doc, namespace) ||
+          !this.hasCompatibleAccessControl(doc, options.accessControl);
+
+        const errorMetadata = isNotOverwritable ? { metadata: { isNotOverwritable } } : undefined;
+
         errors.push({
           id,
           type,
           error: {
             ...errorContent(SavedObjectsErrorHelpers.createConflictError(type, id)),
-            // @ts-expect-error MultiGetHit._source is optional
-            ...(!this.rawDocExistsInNamespace(doc!, namespace) && {
-              metadata: { isNotOverwritable: true },
-            }),
+            ...errorMetadata,
           },
         });
       }
@@ -1242,7 +1271,7 @@ export class SavedObjectsRepository {
           doc,
           ...(rawUpsert && { upsert: rawUpsert._source }),
         },
-        _source_includes: ['namespace', 'namespaces', 'originId'],
+        _source_includes: ['namespace', 'namespaces', 'originId', 'accessControl'],
         require_alias: true,
       })
       .catch((err) => {
@@ -1253,7 +1282,7 @@ export class SavedObjectsRepository {
         throw err;
       });
 
-    const { originId } = body.get?._source ?? {};
+    const { originId, accessControl } = body.get?._source ?? {};
     let namespaces: string[] = [];
     if (!this._registry.isNamespaceAgnostic(type)) {
       namespaces = body.get?._source.namespaces ?? [
@@ -1268,6 +1297,7 @@ export class SavedObjectsRepository {
       version: encodeHitVersion(body),
       namespaces,
       ...(originId && { originId }),
+      ...(accessControl && { accessControl }),
       references,
       attributes,
     };
@@ -1403,7 +1433,7 @@ export class SavedObjectsRepository {
       .map(({ value: { type, id, objectNamespace } }) => ({
         _id: this._serializer.generateRawId(getNamespaceId(objectNamespace), type, id),
         _index: this.getIndexForType(type),
-        _source: ['type', 'namespaces'],
+        _source: ['type', 'namespaces', 'accessControl'],
       }));
     const bulkGetResponse = bulkGetDocs.length
       ? await this.client.mget(
@@ -1523,12 +1553,13 @@ export class SavedObjectsRepository {
         const { _seq_no: seqNo, _primary_term: primaryTerm, get } = rawResponse;
 
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        const { [type]: attributes, references, updated_at } = documentToSave;
+        const { [type]: attributes, references, updated_at, accessControl } = documentToSave;
 
         const { originId } = get._source;
         return {
           id,
           type,
+          accessControl,
           ...(namespaces && { namespaces }),
           ...(originId && { originId }),
           updated_at,
@@ -1998,6 +2029,19 @@ export class SavedObjectsRepository {
 
   private rawDocExistsInNamespace(raw: SavedObjectsRawDoc, namespace: string | undefined) {
     return rawDocExistsInNamespace(this._registry, raw, namespace);
+  }
+
+  private hasCompatibleAccessControl(
+    rawDoc:
+      | estypes.GetResponse<SavedObjectsRawDocSource>
+      | estypes.MgetHit<SavedObjectsRawDocSource>
+      | undefined,
+    accessControl: SavedObjectAccessControl | undefined
+  ) {
+    if (!rawDoc?._source?.accessControl) {
+      return true;
+    }
+    return rawDoc._source?.accessControl?.owner === accessControl?.owner;
   }
 
   /**

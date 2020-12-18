@@ -100,6 +100,7 @@ export type {
 
 export { SimpleSavedObject } from './saved_objects';
 export type {
+  SavedObjectAccessControl,
   SavedObjectsBatchResponse,
   SavedObjectsBulkCreateObject,
   SavedObjectsBulkCreateOptions,
