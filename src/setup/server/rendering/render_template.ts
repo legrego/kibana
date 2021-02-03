@@ -1,7 +1,23 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+/*
+ * Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+ * or more contributor license agreements. Licensed under the Elastic License
+ * 2.0 and the Server Side Public License, v 1; you may not use this file except
+ * in compliance with, at your election, the Elastic License 2.0 or the Server
+ * Side Public License, v 1.
+ */
 
-exports[`renderTemplate interpolates templateData into string template 1`] = `
-"
+export interface BootstrapTemplateData {
+  themeTag: string;
+  jsDependencyPaths: string[];
+  publicPathMap: string;
+}
+
+export const renderTemplate = ({
+  themeTag,
+  jsDependencyPaths,
+  publicPathMap,
+}: BootstrapTemplateData) => {
+  return `
 function kbnBundlesLoader() {
   var modules = {};
 
@@ -11,7 +27,7 @@ function kbnBundlesLoader() {
 
   function define(key, bundleRequire, bundleModuleKey) {
     if (has(key)) {
-      throw new Error('__kbnBundles__ already has a module defined for \\"' + key + '\\"');
+      throw new Error('__kbnBundles__ already has a module defined for "' + key + '"');
     }
 
     modules[key] = {
@@ -22,7 +38,7 @@ function kbnBundlesLoader() {
 
   function get(key) {
     if (!has(key)) {
-      throw new Error('__kbnBundles__ does not have a module defined for \\"' + key + '\\"');
+      throw new Error('__kbnBundles__ does not have a module defined for "' + key + '"');
     }
 
     return modules[key].bundleRequire(modules[key].bundleModuleKey);
@@ -33,8 +49,8 @@ function kbnBundlesLoader() {
 
 var kbnCsp = JSON.parse(document.querySelector('kbn-csp').getAttribute('data'));
 window.__kbnStrictCsp__ = kbnCsp.strictCsp;
-window.__kbnThemeTag__ = \\"v7\\";
-window.__kbnPublicPath__ = {\\"foo\\": \\"bar\\"};
+window.__kbnThemeTag__ = "${themeTag}";
+window.__kbnPublicPath__ = ${publicPathMap};
 window.__kbnBundles__ = kbnBundlesLoader();
 
 if (window.__kbnStrictCsp__ && window.__kbnCspNotEnforced__) {
@@ -42,13 +58,13 @@ if (window.__kbnStrictCsp__ && window.__kbnCspNotEnforced__) {
   legacyBrowserError.style.display = 'flex';
 } else {
   if (!window.__kbnCspNotEnforced__ && window.console) {
-    window.console.log(\\"^ A single error about an inline script not firing due to content security policy is expected!\\");
+    window.console.log("^ A single error about an inline script not firing due to content security policy is expected!");
   }
   var loadingMessage = document.getElementById('kbn_loading_message');
   loadingMessage.style.display = 'flex';
 
   window.onload = function () {
-    function failure() {
+    function failure(...args) {
       // make subsequent calls to failure() noop
       failure = function () {};
 
@@ -58,12 +74,12 @@ if (window.__kbnStrictCsp__ && window.__kbnCspNotEnforced__) {
       err.style['text-align'] = 'center';
       err.style['background'] = '#F44336';
       err.style['padding'] = '25px';
-      err.innerText = document.querySelector('[data-error-message]').dataset.errorMessage;
+      err.innerText = 'Oh noes';
 
       document.body.innerHTML = err.outerHTML;
     }
 
-    var stylesheetTarget = document.querySelector('head meta[name=\\"add-styles-here\\"]')
+    var stylesheetTarget = document.querySelector('head meta[name="add-styles-here"]')
     function loadStyleSheet(url, cb) {
       var dom = document.createElement('link');
       dom.rel = 'stylesheet';
@@ -74,7 +90,7 @@ if (window.__kbnStrictCsp__ && window.__kbnCspNotEnforced__) {
       document.head.insertBefore(dom, stylesheetTarget);
     }
 
-    var scriptsTarget = document.querySelector('head meta[name=\\"add-scripts-here\\"]')
+    var scriptsTarget = document.querySelector('head meta[name="add-scripts-here"]')
     function loadScript(url, cb) {
       var dom = document.createElement('script');
       dom.async = false;
@@ -105,11 +121,11 @@ if (window.__kbnStrictCsp__ && window.__kbnCspNotEnforced__) {
     }
 
     load([
-      '/js-1','/js-2'
+      ${jsDependencyPaths.map((path) => `'${path}'`).join(',')}
     ], function () {
-      __kbnBundles__.get('{{entry}}').__kbnBootstrap__();
+      __kbnBundles__.get('entry/setup/public').__kbnBootstrap__();
     });
   }
 }
-  "
-`;
+  `;
+};

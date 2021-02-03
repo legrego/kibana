@@ -42,6 +42,11 @@ export function runKbnOptimizerCli(options: { defaultLimitsPath: string }) {
         throw createFlagError('expected --watch to have no value');
       }
 
+      const includeSetupBundle = flags.setup ?? true;
+      if (typeof includeSetupBundle !== 'boolean') {
+        throw createFlagError('expected --setup to have no value');
+      }
+
       const oss = flags.oss ?? false;
       if (typeof oss !== 'boolean') {
         throw createFlagError('expected --oss to have no value');
@@ -131,6 +136,7 @@ export function runKbnOptimizerCli(options: { defaultLimitsPath: string }) {
         extraPluginScanDirs,
         inspectWorkers,
         includeCoreBundle,
+        includeSetupBundle,
         filter,
         focus,
         limitsPath,
@@ -160,6 +166,7 @@ export function runKbnOptimizerCli(options: { defaultLimitsPath: string }) {
       flags: {
         boolean: [
           'core',
+          'setup',
           'watch',
           'oss',
           'examples',
@@ -173,6 +180,7 @@ export function runKbnOptimizerCli(options: { defaultLimitsPath: string }) {
         string: ['workers', 'scan-dir', 'filter', 'limits'],
         default: {
           core: true,
+          setup: true,
           examples: true,
           cache: true,
           'inspect-workers': true,
@@ -185,6 +193,7 @@ export function runKbnOptimizerCli(options: { defaultLimitsPath: string }) {
           --oss              only build oss plugins
           --profile          profile the webpack builds and write stats.json files to build outputs
           --no-core          disable generating the core bundle
+          --no-setup         disable generating the setup bundle
           --no-cache         disable the cache
           --focus            just like --filter, except dependencies are automatically included, --filter applies to result
           --filter           comma-separated list of bundle id filters, results from multiple flags are merged, * and ! are supported

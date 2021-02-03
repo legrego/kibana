@@ -44,6 +44,19 @@ const getBootstrapScript = (isDev) => {
   }
 };
 
+const getSetupScript = (isDev) => {
+  // Dev mode proxy server is hard-coded to 5601
+  if (DEV_MODE_SUPPORTED && isDev && process.env.isDevCliChild !== 'true') {
+    // need dynamic require to exclude it from production build
+    // eslint-disable-next-line import/no-dynamic-require
+    const { bootstrapDevMode } = require(DEV_MODE_PATH);
+    return bootstrapDevMode;
+  } else {
+    const { bootstrapSetup } = require('../../setup/server');
+    return bootstrapSetup;
+  }
+};
+
 const pathCollector = function () {
   const paths = [];
   return function (path) {
@@ -182,7 +195,8 @@ export default function (program) {
       []
     )
     .option('--plugins <path>', 'an alias for --plugin-dir', pluginDirCollector)
-    .option('--optimize', 'Deprecated, running the optimizer is no longer required');
+    .option('--optimize', 'Deprecated, running the optimizer is no longer required')
+    .option('--setup', 'Run Kibana in setup mode');
 
   if (!IS_KIBANA_DISTRIBUTABLE) {
     command
@@ -243,6 +257,15 @@ export default function (program) {
       cache: !!opts.cache,
       dist: !!opts.dist,
     };
+
+    const setupScript = getSetupScript(cliArgs.dev);
+    await setupScript({
+      configs,
+      cliArgs,
+      applyConfigOverrides: (rawConfig) => applyConfigOverrides(rawConfig, opts, unknownOptions),
+    });
+
+    return; // FIXME
 
     // In development mode, the main process uses the @kbn/dev-cli-mode
     // bootstrap script instead of core's. The DevCliMode instance

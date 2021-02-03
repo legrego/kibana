@@ -98,6 +98,7 @@ it('uses options to create valid OptimizerConfig', () => {
           "dist": true,
           "examples": true,
           "includeCoreBundle": true,
+          "includeSetupBundle": true,
           "oss": true,
           "pluginPaths": Array [
             "/some/dir",
@@ -115,6 +116,7 @@ it('uses options to create valid OptimizerConfig', () => {
           "dist": false,
           "examples": false,
           "includeCoreBundle": true,
+          "includeSetupBundle": true,
           "oss": false,
           "pluginPaths": Array [],
           "pluginScanDirs": Array [],

@@ -53,6 +53,7 @@ export class Optimizer {
       repoRoot: options.repoRoot,
       watch: options.watch,
       includeCoreBundle: true,
+      includeSetupBundle: true,
       cache: options.cache,
       dist: options.dist,
       oss: options.oss,

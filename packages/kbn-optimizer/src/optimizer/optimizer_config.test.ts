@@ -421,6 +421,7 @@ describe('OptimizerConfig::create()', () => {
       filters: [],
       focus: [],
       includeCoreBundle: false,
+      includeSetupBundle: false,
     }));
   });
 

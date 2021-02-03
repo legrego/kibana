@@ -95,6 +95,9 @@ interface Options {
   /** flag that causes the core bundle to be built along with plugins */
   includeCoreBundle?: boolean;
 
+  /** flag that causes the setup bundle to be built along with plugins */
+  includeSetupBundle?: boolean;
+
   /**
    * style themes that sass files will be converted to, the correct style will be
    * loaded in the browser automatically by checking the global `__kbnThemeTag__`.
@@ -125,6 +128,7 @@ export interface ParsedOptions {
   focus: string[];
   inspectWorkers: boolean;
   includeCoreBundle: boolean;
+  includeSetupBundle: boolean;
   themeTags: ThemeTags;
 }
 
@@ -138,6 +142,7 @@ export class OptimizerConfig {
     const inspectWorkers = !!options.inspectWorkers;
     const cache = options.cache !== false && !process.env.KBN_OPTIMIZER_NO_CACHE;
     const includeCoreBundle = !!options.includeCoreBundle;
+    const includeSetupBundle = !!options.includeSetupBundle;
     const filters = options.filter || [];
     const focus = options.focus || [];
 
@@ -200,6 +205,7 @@ export class OptimizerConfig {
       focus,
       inspectWorkers,
       includeCoreBundle,
+      includeSetupBundle,
       themeTags,
     };
   }
@@ -219,6 +225,19 @@ export class OptimizerConfig {
               contextDir: Path.resolve(options.repoRoot, 'src/core'),
               outputDir: Path.resolve(options.outputRoot, 'src/core/target/public'),
               pageLoadAssetSizeLimit: limits.pageLoadAssetSize?.core,
+            }),
+          ]
+        : []),
+      ...(options.includeSetupBundle
+        ? [
+            new Bundle({
+              type: 'entry',
+              id: 'setup',
+              publicDirNames: ['public'],
+              sourceRoot: options.repoRoot,
+              contextDir: Path.resolve(options.repoRoot, 'src/setup'),
+              outputDir: Path.resolve(options.outputRoot, 'src/setup/target/public'),
+              pageLoadAssetSizeLimit: limits.pageLoadAssetSize?.setup,
             }),
           ]
         : []),
