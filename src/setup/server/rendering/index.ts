@@ -8,4 +8,3 @@
 
 export { RenderingService } from './rendering_service';
 export * from './types';
-export { bootstrapRendererFactory } from './bootstrap_renderer';

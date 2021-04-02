@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Env } from '@kbn/config';
 import { i18n } from '@kbn/i18n';
 
-import { Template } from './views';
+import { Template } from '../../../core/server/rendering/views';
 import { InternalRenderingServiceSetup, RenderingMetadata } from './types';
 import { getStylesheetPaths } from '../../../core/server/rendering/render_utils';
 

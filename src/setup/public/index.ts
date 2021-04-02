@@ -6,7 +6,21 @@
  * Side Public License, v 1.
  */
 
+import { i18n } from '@kbn/i18n';
+
 const __kbnBootstrap__ = async () => {
+  const injectedMetadata = JSON.parse(
+    document.querySelector('kbn-injected-metadata')!.getAttribute('data')!
+  );
+
+  let i18nError: Error | undefined;
+
+  await Promise.all([
+    i18n.load(injectedMetadata.i18n.translationsUrl).catch((error) => {
+      i18nError = error;
+    }),
+  ]);
+
   const { setupApp } = await require('./setup_app');
 
   setupApp.init();

@@ -44,6 +44,7 @@
     "savedObjectsManagement": "src/plugins/saved_objects_management",
     "security": "src/plugins/security_oss",
     "server": "src/legacy/server",
+    "setup": "src/setup",
     "statusPage": "src/legacy/core_plugins/status_page",
     "telemetry": [
       "src/plugins/telemetry",

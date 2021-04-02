@@ -11,6 +11,7 @@ import type { PluginInfo } from './get_plugin_bundle_paths';
 
 export const getJsDependencyPaths = (
   regularBundlePath: string,
+  entryPoint: string,
   bundlePaths: Map<string, PluginInfo>
 ) => {
   return [
@@ -18,7 +19,7 @@ export const getJsDependencyPaths = (
       (filename) => `${regularBundlePath}/kbn-ui-shared-deps/${filename}`
     ),
     `${regularBundlePath}/kbn-ui-shared-deps/${UiSharedDeps.jsFilename}`,
-    `${regularBundlePath}/core/core.entry.js`,
+    `${regularBundlePath}/${entryPoint}/${entryPoint}.entry.js`,
     ...[...bundlePaths.values()].map((plugin) => plugin.bundlePath),
   ];
 };

@@ -10,12 +10,14 @@ export interface BootstrapTemplateData {
   themeTag: string;
   jsDependencyPaths: string[];
   publicPathMap: string;
+  entryPoint: string;
 }
 
 export const renderTemplate = ({
   themeTag,
   jsDependencyPaths,
   publicPathMap,
+  entryPoint,
 }: BootstrapTemplateData) => {
   return `
 function kbnBundlesLoader() {
@@ -123,7 +125,7 @@ if (window.__kbnStrictCsp__ && window.__kbnCspNotEnforced__) {
     load([
       ${jsDependencyPaths.map((path) => `'${path}'`).join(',')}
     ], function () {
-      __kbnBundles__.get('entry/core/public').__kbnBootstrap__();
+      __kbnBundles__.get('entry/${entryPoint}/public').__kbnBootstrap__();
     });
   }
 }

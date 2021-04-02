@@ -12,13 +12,6 @@ import { first } from 'rxjs/operators';
 import { KibanaSetupServer } from './kibana_setup_server';
 import { RenderingService } from './rendering';
 
-interface KibanaFeatures {
-  // Indicates whether we can run Kibana in dev mode in which Kibana is run as
-  // a child process together with optimizer "worker" processes that are
-  // orchestrated by a parent process (dev mode only feature).
-  isCliDevModeSupported: boolean;
-}
-
 interface BootstrapArgs {
   configs: string[];
   cliArgs: CliArgs;
@@ -53,7 +46,6 @@ export async function bootstrapSetup({ configs, cliArgs, applyConfigOverrides }:
   rawConfigService.loadConfig();
 
   const initialConfig = await rawConfigService.getConfig$().pipe(first()).toPromise();
-  const { elasticsearch = {} } = initialConfig;
 
   // TODO: probably need a better check
   const explicitlyRequestedSetupMode = cliArgs.setup;

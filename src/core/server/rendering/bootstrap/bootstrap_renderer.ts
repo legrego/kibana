@@ -22,13 +22,14 @@ export type BootstrapRenderer = (options: RenderedOptions) => Promise<RendererRe
 interface FactoryOptions {
   serverBasePath: string;
   packageInfo: PackageInfo;
+  entryPoint: string;
   uiPlugins: UiPlugins;
-  auth: HttpAuth;
+  auth: HttpAuth | null;
 }
 
 interface RenderedOptions {
   request: KibanaRequest;
-  uiSettingsClient: IUiSettingsClient;
+  uiSettingsClient: IUiSettingsClient | null;
 }
 
 interface RendererResult {
@@ -41,8 +42,12 @@ export const bootstrapRendererFactory: BootstrapRendererFactory = ({
   serverBasePath,
   uiPlugins,
   auth,
+  entryPoint,
 }) => {
   const isAuthenticated = (request: KibanaRequest) => {
+    if (!auth) {
+      return false;
+    }
     const { status: authStatus } = auth.get(request);
     // status is 'unknown' when auth is disabled. we just need to not be `unauthenticated` here.
     return authStatus !== 'unauthenticated';
@@ -54,6 +59,9 @@ export const bootstrapRendererFactory: BootstrapRendererFactory = ({
 
     try {
       const authenticated = isAuthenticated(request);
+      if (authenticated && !uiSettingsClient) {
+        throw new Error(`UI Settings client is required for authenticated endpoints`);
+      }
       darkMode = authenticated ? await uiSettingsClient.get('theme:darkMode') : false;
       themeVersion = authenticated ? await uiSettingsClient.get('theme:version') : 'v8';
     } catch (e) {
@@ -72,12 +80,12 @@ export const bootstrapRendererFactory: BootstrapRendererFactory = ({
       regularBundlePath,
     });
 
-    const jsDependencyPaths = getJsDependencyPaths(regularBundlePath, bundlePaths);
+    const jsDependencyPaths = getJsDependencyPaths(regularBundlePath, entryPoint, bundlePaths);
 
     // These paths should align with the bundle routes configured in
     // src/optimize/bundles_route/bundles_route.ts
     const publicPathMap = JSON.stringify({
-      core: `${regularBundlePath}/core/`,
+      [entryPoint]: `${regularBundlePath}/${entryPoint}/`,
       'kbn-ui-shared-deps': `${regularBundlePath}/kbn-ui-shared-deps/`,
       ...Object.fromEntries(
         [...bundlePaths.entries()].map(([pluginId, plugin]) => [pluginId, plugin.publicPath])
@@ -88,6 +96,7 @@ export const bootstrapRendererFactory: BootstrapRendererFactory = ({
       themeTag,
       jsDependencyPaths,
       publicPathMap,
+      entryPoint,
     });
 
     const hash = createHash('sha1');
