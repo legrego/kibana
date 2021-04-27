@@ -31,6 +31,7 @@ export class RenderingService {
     http,
     status,
     uiPlugins,
+    notReadyServerUiPlugins,
   }: RenderingSetupDeps): Promise<InternalRenderingServiceSetup> {
     const router = http.createRouter('');
 
@@ -42,11 +43,23 @@ export class RenderingService {
     });
     registerBootstrapRoute({ router, renderer: bootstrapRenderer });
 
+    if (http.notReadyServer) {
+      const notReadyBootstrapRenderer = bootstrapRendererFactory({
+        uiPlugins: notReadyServerUiPlugins,
+        serverBasePath: http.basePath.serverBasePath,
+        packageInfo: this.coreContext.env.packageInfo,
+        auth: http.auth,
+      });
+      http.notReadyServer.registerRoutes('', (notReadyRouter) => {
+        registerBootstrapRoute({ router: notReadyRouter, renderer: notReadyBootstrapRenderer });
+      });
+    }
+
     return {
       render: async (
         request,
         uiSettings,
-        { includeUserSettings = true, vars }: IRenderOptions = {}
+        { includeUserSettings = true, vars, renderTarget }: IRenderOptions = {}
       ) => {
         const env = {
           mode: this.coreContext.env.mode,
@@ -56,8 +69,8 @@ export class RenderingService {
         const basePath = http.basePath.get(request);
         const { serverBasePath, publicBaseUrl } = http.basePath;
         const settings = {
-          defaults: uiSettings.getRegistered(),
-          user: includeUserSettings ? await uiSettings.getUserProvided() : {},
+          defaults: uiSettings?.getRegistered() ?? {},
+          user: includeUserSettings && uiSettings ? await uiSettings?.getUserProvided() : {},
         };
 
         const darkMode = getSettingValue('theme:darkMode', settings, Boolean);
@@ -69,6 +82,9 @@ export class RenderingService {
           basePath: serverBasePath,
           buildNum,
         });
+
+        const plugins =
+          renderTarget === 'notReady' ? notReadyServerUiPlugins.public : uiPlugins.public;
 
         const metadata: RenderingMetadata = {
           strictCsp: http.csp.strict,
@@ -94,7 +110,7 @@ export class RenderingService {
             externalUrl: http.externalUrl,
             vars: vars ?? {},
             uiPlugins: await Promise.all(
-              [...uiPlugins.public].map(async ([id, plugin]) => ({
+              [...plugins].map(async ([id, plugin]) => ({
                 id,
                 plugin,
                 config: await getUiConfig(uiPlugins, id),

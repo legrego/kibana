@@ -6,10 +6,11 @@
  * Side Public License, v 1.
  */
 
-import { CapabilitiesResolver } from '../resolve_capabilities';
-import { IRouter } from '../../http';
-import { registerCapabilitiesRoutes } from './resolve_capabilities';
+import type { TypeOf } from '@kbn/config-schema';
+import { schema } from '@kbn/config-schema';
 
-export function registerRoutes(router: IRouter, resolver: CapabilitiesResolver) {
-  registerCapabilitiesRoutes(router, resolver);
-}
+export type ConfigType = TypeOf<typeof ConfigSchema>;
+
+export const ConfigSchema = schema.object({
+  enabled: schema.boolean({ defaultValue: true }),
+});

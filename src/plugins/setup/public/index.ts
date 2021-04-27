@@ -6,10 +6,7 @@
  * Side Public License, v 1.
  */
 
-import { CapabilitiesResolver } from '../resolve_capabilities';
-import { IRouter } from '../../http';
-import { registerCapabilitiesRoutes } from './resolve_capabilities';
+import { PluginInitializerContext } from 'kibana/public';
+import { SetupPlugin } from './plugin';
 
-export function registerRoutes(router: IRouter, resolver: CapabilitiesResolver) {
-  registerCapabilitiesRoutes(router, resolver);
-}
+export const plugin = (initializerContext: PluginInitializerContext) => new SetupPlugin();

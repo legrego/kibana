@@ -56,6 +56,7 @@ export class HttpService
   private readonly env: Env;
   private notReadyServer?: HttpServer;
   private internalSetup?: InternalHttpServiceSetup;
+  private notReadyServerRequestHandlerContext?: RequestHandlerContextContainer;
   private requestHandlerContext?: RequestHandlerContextContainer;
 
   constructor(private readonly coreContext: CoreContext) {
@@ -75,6 +76,7 @@ export class HttpService
   }
 
   public async setup(deps: SetupDeps) {
+    this.notReadyServerRequestHandlerContext = deps.context.createContextContainer();
     this.requestHandlerContext = deps.context.createContextContainer();
     this.configSubscription = this.config$.subscribe(() => {
       if (this.httpServer.isListening()) {
@@ -191,26 +193,28 @@ export class HttpService
 
     const notReadySetup = await this.runNotReadyServer(config);
 
-    // We cannot use the real context container since the core services may not yet be ready
-    const fakeContext: RequestHandlerContextContainer = new Proxy(
-      context.createContextContainer(),
-      {
-        get: (target, property, receiver) => {
-          if (property === 'createHandler') {
-            return Reflect.get(target, property, receiver);
-          }
-          throw new Error(`Unexpected access from fake context: ${String(property)}`);
-        },
-      }
-    );
-
     return {
+      registerStaticDir: notReadySetup.registerStaticDir.bind(notReadySetup),
+      registerRouteHandlerContext: <
+        Context extends RequestHandlerContext,
+        ContextName extends keyof Context
+      >(
+        pluginOpaqueId: PluginOpaqueId,
+        contextName: ContextName,
+        provider: RequestHandlerContextProvider<Context, ContextName>
+      ) =>
+        this.notReadyServerRequestHandlerContext!.registerContext(
+          pluginOpaqueId,
+          contextName,
+          provider
+        ),
       registerRoutes: (path: string, registerCallback: (router: IRouter) => void) => {
-        const router = new Router(
-          path,
-          this.log,
-          fakeContext.createHandler.bind(null, this.coreContext.coreId)
+        const enhanceHandler = this.notReadyServerRequestHandlerContext!.createHandler.bind(
+          null,
+          this.coreContext.coreId
         );
+
+        const router = new Router(path, this.log, enhanceHandler);
 
         registerCallback(router);
         notReadySetup.registerRouterAfterListening(router);

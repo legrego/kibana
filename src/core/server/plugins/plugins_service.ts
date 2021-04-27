@@ -96,6 +96,7 @@ export class PluginsService implements CoreService<PluginsServiceSetup, PluginsS
     await this.handleDiscoveryErrors(error$);
     await this.handleDiscoveredPlugins(plugin$);
 
+    const notReadyServerUiPlugins = this.pluginsSystem.notReadyServerUiPlugins();
     const uiPlugins = this.pluginsSystem.uiPlugins();
 
     return {
@@ -106,6 +107,11 @@ export class PluginsService implements CoreService<PluginsServiceSetup, PluginsS
         internal: this.uiPluginInternalInfo,
         public: uiPlugins,
         browserConfigs: this.generateUiPluginsConfigs(uiPlugins),
+      },
+      notReadyServerUiPlugins: {
+        internal: this.uiPluginInternalInfo,
+        public: notReadyServerUiPlugins,
+        browserConfigs: this.generateUiPluginsConfigs(notReadyServerUiPlugins),
       },
     };
   }

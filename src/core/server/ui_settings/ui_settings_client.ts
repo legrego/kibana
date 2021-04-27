@@ -20,7 +20,7 @@ export interface UiSettingsServiceOptions {
   type: string;
   id: string;
   buildNum: number;
-  savedObjectsClient: SavedObjectsClientContract;
+  savedObjectsClient?: SavedObjectsClientContract;
   overrides?: Record<string, any>;
   defaults?: Record<string, UiSettingsParams>;
   log: Logger;
@@ -191,15 +191,16 @@ export class UiSettingsClient implements IUiSettingsClient {
     changes: Record<string, any>;
     autoCreateOrUpgradeIfMissing?: boolean;
   }) {
+    const client = this.getSavedObjectsClient();
     try {
-      await this.savedObjectsClient.update(this.type, this.id, changes);
+      await client.update(this.type, this.id, changes);
     } catch (error) {
       if (!SavedObjectsErrorHelpers.isNotFoundError(error) || !autoCreateOrUpgradeIfMissing) {
         throw error;
       }
 
       await createOrUpgradeSavedConfig({
-        savedObjectsClient: this.savedObjectsClient,
+        savedObjectsClient: client,
         version: this.id,
         buildNum: this.buildNum,
         log: this.log,
@@ -216,13 +217,15 @@ export class UiSettingsClient implements IUiSettingsClient {
   private async read({ autoCreateOrUpgradeIfMissing = true }: ReadOptions = {}): Promise<
     Record<string, any>
   > {
+    const client = this.getSavedObjectsClient();
+
     try {
-      const resp = await this.savedObjectsClient.get<Record<string, any>>(this.type, this.id);
+      const resp = await client.get<Record<string, any>>(this.type, this.id);
       return resp.attributes;
     } catch (error) {
       if (SavedObjectsErrorHelpers.isNotFoundError(error) && autoCreateOrUpgradeIfMissing) {
         const failedUpgradeAttributes = await createOrUpgradeSavedConfig({
-          savedObjectsClient: this.savedObjectsClient,
+          savedObjectsClient: client,
           version: this.id,
           buildNum: this.buildNum,
           log: this.log,
@@ -245,8 +248,18 @@ export class UiSettingsClient implements IUiSettingsClient {
   }
 
   private isIgnorableError(error: Error) {
-    const { isForbiddenError, isEsUnavailableError } = this.savedObjectsClient.errors;
+    const client = this.getSavedObjectsClient();
+    const { isForbiddenError, isEsUnavailableError } = client.errors;
 
     return isForbiddenError(error) || isEsUnavailableError(error);
+  }
+
+  private getSavedObjectsClient() {
+    if (!this.savedObjectsClient) {
+      throw new Error(
+        `Attempted to use UI Settings Client without an instantiated Saved Objects Client.`
+      );
+    }
+    return this.savedObjectsClient;
   }
 }

@@ -28,6 +28,8 @@ export interface HttpResourcesRenderOptions {
    * All HTML pages are already pre-configured with `content-security-policy` header that cannot be overridden.
    * */
   headers?: ResponseHeaders;
+
+  renderTarget?: 'notReady' | 'primary';
 }
 
 /**

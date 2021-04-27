@@ -212,30 +212,32 @@ export class PluginsSystem {
    * Get a Map of all discovered UI plugins in topological order.
    */
   public uiPlugins() {
+    return new Map(this.allUiPlugins().filter(([, { type }]) => type === 'primary'));
+  }
+
+  public notReadyServerUiPlugins() {
+    return new Map(this.allUiPlugins().filter(([, { type }]) => type === 'notReady'));
+  }
+
+  private allUiPlugins(): Array<[string, DiscoveredPlugin]> {
     const uiPluginNames = [...this.getTopologicallySortedPluginNames().keys()].filter(
       (pluginName) => this.plugins.get(pluginName)!.includesUiPlugin
     );
-    const publicPlugins = new Map<PluginName, DiscoveredPlugin>(
-      uiPluginNames.map((pluginName) => {
-        const plugin = this.plugins.get(pluginName)!;
-        return [
-          pluginName,
-          {
-            id: pluginName,
-            configPath: plugin.manifest.configPath,
-            requiredPlugins: plugin.manifest.requiredPlugins.filter((p) =>
-              uiPluginNames.includes(p)
-            ),
-            optionalPlugins: plugin.manifest.optionalPlugins.filter((p) =>
-              uiPluginNames.includes(p)
-            ),
-            requiredBundles: plugin.manifest.requiredBundles,
-          },
-        ];
-      })
-    );
 
-    return publicPlugins;
+    return uiPluginNames.map((pluginName) => {
+      const plugin = this.plugins.get(pluginName)!;
+      return [
+        pluginName,
+        {
+          id: pluginName,
+          type: plugin.manifest.type,
+          configPath: plugin.manifest.configPath,
+          requiredPlugins: plugin.manifest.requiredPlugins.filter((p) => uiPluginNames.includes(p)),
+          optionalPlugins: plugin.manifest.optionalPlugins.filter((p) => uiPluginNames.includes(p)),
+          requiredBundles: plugin.manifest.requiredBundles,
+        },
+      ];
+    });
   }
 
   /**

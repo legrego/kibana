@@ -63,6 +63,7 @@ export class UiSettingsService
 
     return {
       register: this.register.bind(this),
+      defaultsClient: this.getDefaultsClientFactory(),
     };
   }
 
@@ -87,6 +88,19 @@ export class UiSettingsService
         id: version,
         buildNum,
         savedObjectsClient,
+        defaults: mapToObject(this.uiSettingsDefaults),
+        overrides: this.overrides,
+        log: this.log,
+      });
+  }
+
+  private getDefaultsClientFactory() {
+    const { version, buildNum } = this.coreContext.env.packageInfo;
+    return () =>
+      new UiSettingsClient({
+        type: 'config',
+        id: version,
+        buildNum,
         defaults: mapToObject(this.uiSettingsDefaults),
         overrides: this.overrides,
         log: this.log,

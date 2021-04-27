@@ -62,10 +62,13 @@ export interface RenderingSetupDeps {
   http: InternalHttpServiceSetup;
   status: InternalStatusServiceSetup;
   uiPlugins: UiPlugins;
+  notReadyServerUiPlugins: UiPlugins;
 }
 
 /** @public */
 export interface IRenderOptions {
+  renderTarget?: 'notReady' | 'primary';
+
   /**
    * Set whether to output user settings in the page metadata.
    * `true` by default.

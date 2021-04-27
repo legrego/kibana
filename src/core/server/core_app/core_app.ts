@@ -28,13 +28,17 @@ export class CoreApp {
     this.env = core.env;
   }
 
-  setup(coreSetup: InternalCoreSetup, uiPlugins: UiPlugins) {
+  setup(coreSetup: InternalCoreSetup, uiPlugins: UiPlugins, notReadyServerUiPlugins: UiPlugins) {
     this.logger.debug('Setting up core app.');
-    this.registerDefaultRoutes(coreSetup, uiPlugins);
+    this.registerDefaultRoutes(coreSetup, uiPlugins, notReadyServerUiPlugins);
     this.registerStaticDirs(coreSetup);
   }
 
-  private registerDefaultRoutes(coreSetup: InternalCoreSetup, uiPlugins: UiPlugins) {
+  private registerDefaultRoutes(
+    coreSetup: InternalCoreSetup,
+    uiPlugins: UiPlugins,
+    notReadyServerUiPlugins: UiPlugins
+  ) {
     const httpSetup = coreSetup.http;
     const router = httpSetup.createRouter('');
     const resources = coreSetup.httpResources.createRegistrar(router);
@@ -49,6 +53,40 @@ export class CoreApp {
           location: url,
         },
       });
+    });
+
+    httpSetup.notReadyServer?.registerRoutes('', (notReadyRouter) => {
+      const notReadyResources = coreSetup.httpResources.createRegistrar(notReadyRouter);
+
+      // TODO: need better mechanism for this, -OR- make setup mode render at the root instead.
+      notReadyRouter.get({ path: '/', validate: false }, async (context, req, res) => {
+        const defaultRoute = '/app/setup';
+        const basePath = httpSetup.basePath.get(req);
+        const url = `${basePath}${defaultRoute}`;
+
+        return res.redirected({
+          headers: {
+            location: url,
+          },
+        });
+      });
+
+      registerBundleRoutes({
+        router: notReadyRouter,
+        uiPlugins: notReadyServerUiPlugins,
+        packageInfo: this.env.packageInfo,
+        serverBasePath: coreSetup.http.basePath.serverBasePath,
+      });
+
+      notReadyResources.register(
+        {
+          path: '/app/{id}/{any*}',
+          validate: false,
+        },
+        async (context, request, response) => {
+          return response.renderAnonymousCoreApp({ renderTarget: 'notReady' });
+        }
+      );
     });
 
     // remove trailing slash catch-all
@@ -130,8 +168,16 @@ export class CoreApp {
   }
 
   private registerStaticDirs(coreSetup: InternalCoreSetup) {
+    coreSetup.http.notReadyServer?.registerStaticDir(
+      '/ui/{path*}',
+      Path.resolve(__dirname, './assets')
+    );
     coreSetup.http.registerStaticDir('/ui/{path*}', Path.resolve(__dirname, './assets'));
 
+    coreSetup.http.notReadyServer?.registerStaticDir(
+      '/node_modules/@kbn/ui-framework/dist/{path*}',
+      fromRoot('node_modules/@kbn/ui-framework/dist')
+    );
     coreSetup.http.registerStaticDir(
       '/node_modules/@kbn/ui-framework/dist/{path*}',
       fromRoot('node_modules/@kbn/ui-framework/dist')

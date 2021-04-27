@@ -6,10 +6,16 @@
  * Side Public License, v 1.
  */
 
-import { CapabilitiesResolver } from '../resolve_capabilities';
-import { IRouter } from '../../http';
-import { registerCapabilitiesRoutes } from './resolve_capabilities';
+import type { Plugin, PluginInitializerContext } from 'src/core/server';
 
-export function registerRoutes(router: IRouter, resolver: CapabilitiesResolver) {
-  registerCapabilitiesRoutes(router, resolver);
+import type { ConfigType } from './config';
+
+export class SetupPlugin implements Plugin<void, void, {}, {}> {
+  constructor(initializerContext: PluginInitializerContext<ConfigType>) {}
+
+  public setup() {}
+
+  public start() {}
+
+  public stop() {}
 }

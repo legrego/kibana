@@ -275,11 +275,22 @@ export interface HttpServiceSetup {
    * Provides common {@link HttpServerInfo | information} about the running http server.
    */
   getServerInfo: () => HttpServerInfo;
+
+  notReadyServer?: InternalNotReadyHttpServiceSetup;
 }
 
 /** @internal */
 export interface InternalNotReadyHttpServiceSetup {
   registerRoutes(path: string, callback: (router: IRouter) => void): void;
+  registerStaticDir: (path: string, dirPath: string) => void;
+  registerRouteHandlerContext: <
+    Context extends RequestHandlerContext,
+    ContextName extends keyof Context
+  >(
+    pluginOpaqueId: PluginOpaqueId,
+    contextName: ContextName,
+    provider: RequestHandlerContextProvider<Context, ContextName>
+  ) => RequestHandlerContextContainer;
 }
 
 /** @internal */

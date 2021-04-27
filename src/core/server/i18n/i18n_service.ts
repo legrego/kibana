@@ -59,6 +59,10 @@ export class I18nService {
     this.log.debug(`Using translation files: [${translationFiles.join(', ')}]`);
     await initTranslations(locale, translationFiles);
 
+    http.notReadyServer?.registerRoutes('', (notReadyRouter) => {
+      registerRoutes({ router: notReadyRouter, locale });
+    });
+
     const router = http.createRouter('');
     registerRoutes({ router, locale });
 

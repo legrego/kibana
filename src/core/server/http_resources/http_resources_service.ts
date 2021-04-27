@@ -99,6 +99,7 @@ export class HttpResourcesService implements CoreService<InternalHttpResourcesSe
           vars: {
             apmConfig,
           },
+          renderTarget: options.renderTarget,
         });
 
         return response.ok({

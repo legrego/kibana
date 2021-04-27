@@ -39,6 +39,7 @@ const KNOWN_MANIFEST_FIELDS = (() => {
   const manifestFields: { [P in keyof PluginManifest]: boolean } = {
     id: true,
     kibanaVersion: true,
+    type: true,
     version: true,
     configPath: true,
     requiredPlugins: true,
@@ -180,6 +181,7 @@ export async function parseManifest(
     id: manifest.id,
     version: manifest.version,
     kibanaVersion: expectedKibanaVersion,
+    type: manifest.type ?? 'primary',
     configPath: manifest.configPath || snakeCase(manifest.id),
     requiredPlugins: Array.isArray(manifest.requiredPlugins) ? manifest.requiredPlugins : [],
     optionalPlugins: Array.isArray(manifest.optionalPlugins) ? manifest.optionalPlugins : [],

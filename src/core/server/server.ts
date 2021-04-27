@@ -48,6 +48,7 @@ import { CoreUsageDataService } from './core_usage_data';
 import { DeprecationsService } from './deprecations';
 import { CoreRouteHandlerContext } from './core_route_handler_context';
 import { config as externalUrlConfig } from './external_url';
+import { NotReadyCoreRouteHandlerContext } from './not_ready_core_route_handler_context';
 
 const coreId = Symbol('core');
 const rootConfigPath = '';
@@ -122,7 +123,12 @@ export class Server {
     const environmentSetup = await this.environment.setup();
 
     // Discover any plugins before continuing. This allows other systems to utilize the plugin dependency graph.
-    const { pluginTree, pluginPaths, uiPlugins } = await this.plugins.discover({
+    const {
+      pluginTree,
+      pluginPaths,
+      uiPlugins,
+      notReadyServerUiPlugins,
+    } = await this.plugins.discover({
       environment: environmentSetup,
     });
 
@@ -179,6 +185,7 @@ export class Server {
       http: httpSetup,
       status: statusSetup,
       uiPlugins,
+      notReadyServerUiPlugins,
     });
 
     const httpResourcesSetup = this.httpResources.setup({
@@ -221,7 +228,7 @@ export class Server {
     });
 
     this.registerCoreContext(coreSetup);
-    this.coreApp.setup(coreSetup, uiPlugins);
+    this.coreApp.setup(coreSetup, uiPlugins, notReadyServerUiPlugins);
 
     setupTransaction?.end();
     return coreSetup;
@@ -285,6 +292,14 @@ export class Server {
   }
 
   private registerCoreContext(coreSetup: InternalCoreSetup) {
+    coreSetup.http.notReadyServer?.registerRouteHandlerContext(
+      coreId,
+      'core',
+      (context, req, res): any => {
+        // need better types
+        return new NotReadyCoreRouteHandlerContext(coreSetup);
+      }
+    );
     coreSetup.http.registerRouteHandlerContext(
       coreId,
       'core',

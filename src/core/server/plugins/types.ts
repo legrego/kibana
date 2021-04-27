@@ -149,6 +149,8 @@ export interface PluginManifest {
    */
   readonly kibanaVersion: string;
 
+  readonly type: 'notReady' | 'primary';
+
   /**
    * Root {@link ConfigPath | configuration path} used by the plugin, defaults
    * to "id" in snake_case format.
@@ -250,6 +252,8 @@ export interface DiscoveredPlugin {
    * duplicated here.
    */
   readonly requiredBundles: readonly PluginName[];
+
+  readonly type: 'notReady' | 'primary';
 }
 
 /**

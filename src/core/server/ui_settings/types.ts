@@ -78,6 +78,8 @@ export interface InternalUiSettingsServiceSetup {
    * @param settings
    */
   register(settings: Record<string, UiSettingsParams>): void;
+
+  defaultsClient(): IUiSettingsClient;
 }
 
 /** @public */
@@ -100,6 +102,8 @@ export interface UiSettingsServiceSetup {
    * ```
    */
   register(settings: Record<string, UiSettingsParams>): void;
+
+  defaultsClient(): IUiSettingsClient;
 }
 
 /** @public */

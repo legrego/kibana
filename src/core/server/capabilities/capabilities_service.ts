@@ -152,7 +152,13 @@ export class CapabilitiesService {
   public setup(setupDeps: SetupDeps): CapabilitiesSetup {
     this.logger.debug('Setting up capabilities service');
 
-    registerRoutes(setupDeps.http, this.resolveCapabilities);
+    registerRoutes(setupDeps.http.createRouter(''), this.resolveCapabilities);
+
+    // The not ready server has no need for real capabilities.
+    // Returning the un-augmented defaults is sufficient.
+    setupDeps.http.notReadyServer?.registerRoutes('', (notReadyRouter) => {
+      registerRoutes(notReadyRouter, async () => defaultCapabilities);
+    });
 
     return {
       registerProvider: (provider: CapabilitiesProvider) => {

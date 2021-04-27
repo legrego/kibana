@@ -6,10 +6,8 @@
  * Side Public License, v 1.
  */
 
-import { CapabilitiesResolver } from '../resolve_capabilities';
-import { IRouter } from '../../http';
-import { registerCapabilitiesRoutes } from './resolve_capabilities';
-
-export function registerRoutes(router: IRouter, resolver: CapabilitiesResolver) {
-  registerCapabilitiesRoutes(router, resolver);
-}
+module.exports = {
+  preset: '@kbn/test',
+  rootDir: '../../..',
+  roots: ['<rootDir>/src/plugins/setup'],
+};
