@@ -1,7 +1,7 @@
 {
   "id": "spacesOss",
   "version": "kibana",
-  "server": false,
+  "server": true,
   "ui": true,
   "requiredPlugins": [],
   "optionalPlugins": []

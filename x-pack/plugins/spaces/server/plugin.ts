@@ -15,6 +15,7 @@ import type {
   PluginInitializerContext,
 } from 'src/core/server';
 import type { HomeServerPluginSetup } from 'src/plugins/home/server';
+import type { SpacesOssPluginSetup } from 'src/plugins/spaces_oss/server';
 import type { UsageCollectionSetup } from 'src/plugins/usage_collection/server';
 
 import type {
@@ -41,6 +42,7 @@ import { registerSpacesUsageCollector } from './usage_collection';
 import { UsageStatsService } from './usage_stats';
 
 export interface PluginsSetup {
+  spacesOss: SpacesOssPluginSetup;
   features: FeaturesPluginSetup;
   licensing: LicensingPluginSetup;
   usageCollection?: UsageCollectionSetup;
@@ -116,6 +118,7 @@ export class SpacesPlugin
   }
 
   public setup(core: CoreSetup<PluginsStart>, plugins: PluginsSetup): SpacesPluginSetup {
+    plugins.spacesOss.setSpacesAvailable(true);
     const spacesClientSetup = this.spacesClientService.setup({ config$: this.config$ });
 
     const spacesServiceSetup = this.spacesService.setup({

@@ -1058,7 +1058,96 @@
     "interfaces": [],
     "enums": [],
     "misc": [],
-    "objects": []
+    "objects": [],
+    "setup": {
+      "id": "def-server.SpacesOssPluginSetup",
+      "type": "Interface",
+      "label": "SpacesOssPluginSetup",
+      "description": [
+        "\nOSS Spaces plugin setup contract."
+      ],
+      "tags": [],
+      "children": [
+        {
+          "id": "def-server.SpacesOssPluginSetup.setSpacesAvailable",
+          "type": "Function",
+          "label": "setSpacesAvailable",
+          "signature": [
+            "(available: boolean) => void"
+          ],
+          "description": [
+            "\nAllows consumers to indicate that the Spaces feature is available."
+          ],
+          "children": [
+            {
+              "id": "def-server.SpacesOssPluginSetup.setSpacesAvailable.$1",
+              "type": "boolean",
+              "label": "available",
+              "isRequired": true,
+              "signature": [
+                "boolean"
+              ],
+              "description": [
+                "flag indicating if the Spaces features is available."
+              ],
+              "source": {
+                "path": "src/plugins/spaces_oss/server/types.ts",
+                "lineNumber": 22
+              }
+            }
+          ],
+          "tags": [
+            "private",
+            "deprecated",
+            "removeBy"
+          ],
+          "returnComment": [],
+          "source": {
+            "path": "src/plugins/spaces_oss/server/types.ts",
+            "lineNumber": 22
+          }
+        }
+      ],
+      "source": {
+        "path": "src/plugins/spaces_oss/server/types.ts",
+        "lineNumber": 12
+      },
+      "lifecycle": "setup",
+      "initialIsOpen": true
+    },
+    "start": {
+      "id": "def-server.SpacesOssPluginStart",
+      "type": "Interface",
+      "label": "SpacesOssPluginStart",
+      "description": [
+        "\nOSS Spaces plugin start contract."
+      ],
+      "tags": [],
+      "children": [
+        {
+          "tags": [
+            "deprecated",
+            "removeBy"
+          ],
+          "id": "def-server.SpacesOssPluginStart.isSpacesAvailable",
+          "type": "boolean",
+          "label": "isSpacesAvailable",
+          "description": [
+            "\nIndicates if the Spaces feature is available.\n"
+          ],
+          "source": {
+            "path": "src/plugins/spaces_oss/server/types.ts",
+            "lineNumber": 35
+          }
+        }
+      ],
+      "source": {
+        "path": "src/plugins/spaces_oss/server/types.ts",
+        "lineNumber": 28
+      },
+      "lifecycle": "start",
+      "initialIsOpen": true
+    }
   },
   "common": {
     "classes": [],
@@ -1069,7 +1158,7 @@
         "type": "Interface",
         "label": "Space",
         "description": [
-          "\nA Kibana Space."
+          "\nA Space."
         ],
         "tags": [],
         "children": [

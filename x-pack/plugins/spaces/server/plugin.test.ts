@@ -7,6 +7,7 @@
 
 import type { CoreSetup } from 'src/core/server';
 import { coreMock } from 'src/core/server/mocks';
+import { spacesOssMock } from 'src/plugins/spaces_oss/server/mocks';
 import { usageCollectionPluginMock } from 'src/plugins/usage_collection/server/mocks';
 
 import { featuresPluginMock } from '../../features/server/mocks';
@@ -21,9 +22,10 @@ describe('Spaces plugin', () => {
       const core = coreMock.createSetup() as CoreSetup<PluginsStart>;
       const features = featuresPluginMock.createSetup();
       const licensing = licensingMock.createSetup();
+      const spacesOss = spacesOssMock.createSetup();
 
       const plugin = new SpacesPlugin(initializerContext);
-      const spacesSetup = plugin.setup(core, { features, licensing });
+      const spacesSetup = plugin.setup(core, { features, licensing, spacesOss });
       expect(spacesSetup).toMatchInlineSnapshot(`
         Object {
           "spacesClient": Object {
@@ -44,10 +46,11 @@ describe('Spaces plugin', () => {
       const core = coreMock.createSetup() as CoreSetup<PluginsStart>;
       const features = featuresPluginMock.createSetup();
       const licensing = licensingMock.createSetup();
+      const spacesOss = spacesOssMock.createSetup();
 
       const plugin = new SpacesPlugin(initializerContext);
 
-      plugin.setup(core, { features, licensing });
+      plugin.setup(core, { features, licensing, spacesOss });
 
       expect(core.capabilities.registerProvider).toHaveBeenCalledTimes(1);
       expect(core.capabilities.registerSwitcher).toHaveBeenCalledTimes(1);
@@ -58,12 +61,13 @@ describe('Spaces plugin', () => {
       const core = coreMock.createSetup() as CoreSetup<PluginsStart>;
       const features = featuresPluginMock.createSetup();
       const licensing = licensingMock.createSetup();
+      const spacesOss = spacesOssMock.createSetup();
 
       const usageCollection = usageCollectionPluginMock.createSetupContract();
 
       const plugin = new SpacesPlugin(initializerContext);
 
-      plugin.setup(core, { features, licensing, usageCollection });
+      plugin.setup(core, { features, licensing, usageCollection, spacesOss });
 
       expect(usageCollection.getCollectorByType('spaces')).toBeDefined();
     });
@@ -73,10 +77,11 @@ describe('Spaces plugin', () => {
       const core = coreMock.createSetup() as CoreSetup<PluginsStart>;
       const features = featuresPluginMock.createSetup();
       const licensing = licensingMock.createSetup();
+      const spacesOss = spacesOssMock.createSetup();
 
       const plugin = new SpacesPlugin(initializerContext);
 
-      plugin.setup(core, { features, licensing });
+      plugin.setup(core, { features, licensing, spacesOss });
 
       expect(core.savedObjects.registerType).toHaveBeenCalledWith({
         name: 'space',
@@ -92,6 +97,21 @@ describe('Spaces plugin', () => {
         expect.any(Function)
       );
     });
+
+    it('sets the spaces feature to available', () => {
+      const initializerContext = coreMock.createPluginInitializerContext({});
+      const core = coreMock.createSetup() as CoreSetup<PluginsStart>;
+      const features = featuresPluginMock.createSetup();
+      const licensing = licensingMock.createSetup();
+      const spacesOss = spacesOssMock.createSetup();
+
+      const plugin = new SpacesPlugin(initializerContext);
+
+      plugin.setup(core, { features, licensing, spacesOss });
+
+      expect(spacesOss.setSpacesAvailable).toHaveBeenCalledTimes(1);
+      expect(spacesOss.setSpacesAvailable).toHaveBeenCalledWith(true);
+    });
   });
 
   describe('#start', () => {
@@ -100,9 +120,10 @@ describe('Spaces plugin', () => {
       const coreSetup = coreMock.createSetup() as CoreSetup<PluginsStart>;
       const features = featuresPluginMock.createSetup();
       const licensing = licensingMock.createSetup();
+      const spacesOss = spacesOssMock.createSetup();
 
       const plugin = new SpacesPlugin(initializerContext);
-      plugin.setup(coreSetup, { features, licensing });
+      plugin.setup(coreSetup, { features, licensing, spacesOss });
 
       const coreStart = coreMock.createStart();
 
