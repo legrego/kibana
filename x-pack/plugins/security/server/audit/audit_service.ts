@@ -27,7 +27,9 @@ export const ECS_VERSION = '1.6.0';
 export const RECORD_USAGE_INTERVAL = 60 * 60 * 1000; // 1 hour
 
 /**
- * @deprecated
+ * Legacy audit logger. Records events to the Kibana server log.
+ * @deprecated Use the ECS-compliant audit logger instead.
+ * @removeBy 7.16
  */
 export interface LegacyAuditLogger {
   log: (eventType: string, message: string, data?: Record<string, any>) => void;
@@ -38,7 +40,19 @@ export interface AuditLogger {
 }
 
 export interface AuditServiceSetup {
+  /**
+   * Returns an instance of the ECS-compliant audit logger, which records events to a dedicated audit log.
+   * @param request the request to scope the logger.
+   */
   asScoped: (request: KibanaRequest) => AuditLogger;
+
+  /**
+   * Returns an instance of the legacy audit logger, which records events to the Kibana server log.
+   *
+   * @param id a unique identifier for this audit logger.
+   * @deprecated Use `asScoped(request)` to leverage the ECS-compliant audit logger instead.
+   * @removeBy 7.16
+   */
   getLogger: (id?: string) => LegacyAuditLogger;
 }
 

@@ -7,7 +7,7 @@
 
 export { ApiKey, ApiKeyToInvalidate, ApiKeyRoleDescriptors } from './api_key';
 export { User, EditUser, getUserDisplayName } from './user';
-export { AuthenticatedUser, canUserChangePassword } from './authenticated_user';
+export { AuthenticatedUser, canUserChangePassword, UserRealm } from './authenticated_user';
 export { AuthenticationProvider, shouldProviderUseLoginForm } from './authentication_provider';
 export { BuiltinESPrivileges } from './builtin_es_privileges';
 export { RawKibanaPrivileges, RawKibanaFeaturePrivileges } from './raw_kibana_privileges';

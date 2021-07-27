@@ -21,6 +21,7 @@ import { SecurityPlugin } from './plugin';
 // These exports are part of public Security plugin contract, any change in signature of exported
 // functions or removal of exports should be considered as a breaking change.
 export type {
+  CreateAPIKeyParams,
   CreateAPIKeyResult,
   InvalidateAPIKeysParams,
   InvalidateAPIKeyResult,
@@ -29,11 +30,10 @@ export type {
 } from './authentication';
 export type { CheckPrivilegesPayload } from './authorization';
 export type AuthorizationServiceSetup = SecurityPluginStart['authz'];
-export { LegacyAuditLogger, AuditLogger, AuditEvent } from './audit';
+export { LegacyAuditLogger, AuditLogger, AuditEvent, AuditServiceSetup } from './audit';
 export type { SecurityPluginSetup, SecurityPluginStart };
 export type { AuthenticatedUser } from '../common/model';
 export { ROUTE_TAG_CAN_REDIRECT } from './routes/tags';
-export { AuditServiceSetup } from './audit';
 
 export const config: PluginConfigDescriptor<TypeOf<typeof ConfigSchema>> = {
   schema: ConfigSchema,

@@ -27,6 +27,7 @@ export {
   HTTPAuthorizationHeader,
 } from './http_authentication';
 export type {
+  CreateAPIKeyParams,
   CreateAPIKeyResult,
   InvalidateAPIKeyResult,
   CreateAPIKeyParams,

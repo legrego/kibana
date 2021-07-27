@@ -5,5 +5,5 @@
  * 2.0.
  */
 
-export type { SecurityLicense } from './licensing';
-export type { AuthenticatedUser } from './model';
+export type { SecurityLicense, SecurityLicenseFeatures } from './licensing';
+export type { AuthenticationProvider, AuthenticatedUser, User, UserRealm } from './model';

@@ -7,12 +7,25 @@
 
 import type { PluginInitializer, PluginInitializerContext } from 'src/core/public';
 
-import type { PluginSetupDependencies, PluginStartDependencies } from './plugin';
-import { SecurityPlugin, SecurityPluginSetup, SecurityPluginStart } from './plugin';
+import type {
+  PluginSetupDependencies,
+  PluginStartDependencies,
+  SecurityPluginSetup,
+  SecurityPluginStart,
+} from './plugin';
+import { SecurityPlugin } from './plugin';
 
-export { SecurityPluginSetup, SecurityPluginStart };
-export { AuthenticatedUser } from '../common/model';
-export { SecurityLicense, SecurityLicenseFeatures } from '../common/licensing';
+export type { SecurityPluginSetup, SecurityPluginStart };
+export type {
+  AuthenticationProvider,
+  AuthenticatedUser,
+  User,
+  UserRealm,
+  SecurityLicense,
+  SecurityLicenseFeatures,
+} from '../common';
+export type { UiApi } from './ui_api';
+export type { PersonalInfoProps, ChangePasswordProps } from './account_management';
 export { UserMenuLink, SecurityNavControlServiceStart } from '../public/nav_control';
 
 export { AuthenticationServiceStart, AuthenticationServiceSetup } from './authentication';

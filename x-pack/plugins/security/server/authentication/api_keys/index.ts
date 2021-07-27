@@ -7,6 +7,7 @@
 
 export {
   APIKeys,
+  CreateAPIKeyParams,
   CreateAPIKeyResult,
   InvalidateAPIKeyResult,
   CreateAPIKeyParams,
