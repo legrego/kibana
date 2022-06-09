@@ -92,7 +92,7 @@ function UserDetailsEditor({ user }: { user: AuthenticatedUser }) {
         <h2>
           <FormattedMessage
             id="xpack.security.accountManagement.userProfile.detailsGroupTitle"
-            defaultMessage="Details"
+            defaultMessage="Details!"
           />
         </h2>
       }
