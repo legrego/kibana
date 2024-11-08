@@ -111,6 +111,8 @@ describe('APIKeysGridPage', () => {
       },
     });
 
+    coreStart.userProfile.bulkGet.mockResolvedValue([]);
+
     authc.getCurrentUser.mockResolvedValue(
       mockAuthenticatedUser({
         username: 'elastic',
