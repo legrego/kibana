@@ -159,6 +159,7 @@ export function defineQueryApiKeysAndAggregationsRoute({
           const queryResponse = await esClient.asCurrentUser.security.queryApiKeys({
             query: queryPayload,
             sort: transformedSort,
+            with_profile_uid: true,
             size,
             from,
           });

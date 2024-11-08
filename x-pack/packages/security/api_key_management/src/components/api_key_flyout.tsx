@@ -38,6 +38,7 @@ import useAsyncFn from 'react-use/lib/useAsyncFn';
 
 import { CodeEditorField } from '@kbn/code-editor';
 import type { AuthenticatedUser, CoreStart } from '@kbn/core/public';
+import type { UserProfileData, UserProfileUserInfo } from '@kbn/core-user-profile-common';
 import { i18n } from '@kbn/i18n';
 import { FormattedDate, FormattedMessage } from '@kbn/i18n-react';
 import { useDarkMode, useKibana } from '@kbn/kibana-react-plugin/public';
@@ -48,6 +49,8 @@ import type {
   CategorizedApiKey,
   Role,
 } from '@kbn/security-plugin-types-common';
+import type { UserProfileWithAvatar } from '@kbn/user-profile-components';
+import { getUserDisplayName, UserAvatar } from '@kbn/user-profile-components';
 
 import { ApiKeyBadge, ApiKeyStatus, TimeToolTip } from '.';
 import { APIKeysAPIClient } from './api_keys_api_client';
@@ -113,6 +116,7 @@ interface CreateApiKeyFlyoutProps extends CommonApiKeyFlyoutProps {
 interface UpdateApiKeyFlyoutProps extends CommonApiKeyFlyoutProps {
   onSuccess?: (updateApiKeyResponse: UpdateAPIKeyResult) => void;
   apiKey: CategorizedApiKey;
+  userProfiles: Map<string, UserProfileWithAvatar>;
 }
 
 export type ApiKeyFlyoutProps = ExclusiveUnion<CreateApiKeyFlyoutProps, UpdateApiKeyFlyoutProps>;
@@ -179,6 +183,7 @@ export const ApiKeyFlyout: FunctionComponent<ApiKeyFlyoutProps> = ({
   defaultRoleDescriptors,
   defaultName,
   apiKey,
+  userProfiles,
   canManageCrossClusterApiKeys = false,
   readOnly = false,
   currentUser,
@@ -323,6 +328,13 @@ export const ApiKeyFlyout: FunctionComponent<ApiKeyFlyoutProps> = ({
     expirationDate.setDate(expirationDate.getDate() + parseInt(formik.values.expiration, 10));
   }
 
+  const profile =
+    (userProfiles && apiKey.profile_uid ? userProfiles.get(apiKey.profile_uid) : undefined) ??
+    ({
+      user: { username: apiKey?.username } as UserProfileUserInfo,
+      data: { avatar: undefined } as UserProfileData,
+    } as UserProfileWithAvatar);
+
   return (
     <FormikProvider value={formik}>
       <EuiFlyout onClose={onCancel} aria-labelledby={titleId} size="m" ownFocus>
@@ -420,9 +432,13 @@ export const ApiKeyFlyout: FunctionComponent<ApiKeyFlyoutProps> = ({
                       <EuiFlexItem grow={false}>
                         <EuiFlexGroup justifyContent="flexEnd" alignItems="center" gutterSize="xs">
                           <EuiFlexItem grow={false}>
-                            <EuiIcon type="user" />
+                            <UserAvatar user={profile.user} avatar={profile.data.avatar} size="s" />
                           </EuiFlexItem>
-                          <EuiFlexItem grow={false}>{apiKey.username}</EuiFlexItem>
+                          <EuiFlexItem grow={false}>
+                            <EuiText size="s" data-test-subj="apiKeyUsername">
+                              {getUserDisplayName(profile.user)}
+                            </EuiText>
+                          </EuiFlexItem>
                         </EuiFlexGroup>
                       </EuiFlexItem>
                     </EuiFlexGroup>

@@ -13,6 +13,7 @@ import { useHistory } from 'react-router-dom';
 import useAsyncFn from 'react-use/lib/useAsyncFn';
 
 import type { CoreStart } from '@kbn/core/public';
+import type { UserProfile, UserProfileData } from '@kbn/core-user-profile-common';
 import { SectionLoading } from '@kbn/es-ui-shared-plugin/public';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
@@ -26,6 +27,8 @@ import {
 import type { CategorizedApiKey } from '@kbn/security-plugin-types-common';
 import { KibanaPageTemplate } from '@kbn/shared-ux-page-kibana-template';
 import { Route } from '@kbn/shared-ux-router';
+
+import type {} from '@kbn/user-profile-components';
 
 import { ApiKeysEmptyPrompt } from './api_keys_empty_prompt';
 import { ApiKeysTable, MAX_PAGINATED_ITEMS } from './api_keys_table';
@@ -74,7 +77,29 @@ export const APIKeysGridPage: FunctionComponent = () => {
     };
 
     return Promise.all([
-      new APIKeysAPIClient(services.http).queryApiKeys(requestBody),
+      new APIKeysAPIClient(services.http).queryApiKeys(requestBody).then((response) => {
+        const ids = new Set<string>();
+        response.apiKeys.forEach((apiKey) => {
+          if (apiKey.profile_uid && !ids.has(apiKey.profile_uid)) {
+            ids.add(apiKey.profile_uid);
+          }
+        });
+        return services.userProfile
+          .bulkGet({ uids: ids, dataPath: 'avatar' })
+          .then((userProfiles) => {
+            const map = new Map<string, UserProfile<UserProfileData>>();
+            userProfiles.forEach((profile) => {
+              map.set(profile.uid, profile);
+            });
+            return { apiKeysResult: response, userProfiles: map };
+          })
+          .catch(() => {
+            return {
+              apiKeysResult: response,
+              userProfiles: new Map() as Map<string, UserProfile<UserProfileData>>,
+            };
+          });
+      }),
       authc.getCurrentUser(),
     ]);
   }, []);
@@ -146,19 +171,17 @@ export const APIKeysGridPage: FunctionComponent = () => {
     );
   }
 
-  const [
-    {
-      aggregations,
-      canManageApiKeys,
-      apiKeys,
-      canManageOwnApiKeys,
-      canManageCrossClusterApiKeys,
-      aggregationTotal: totalKeys,
-      total: filteredItemTotal,
-      queryError,
-    },
-    currentUser,
-  ] = state.value;
+  const [{ apiKeysResult, userProfiles }, currentUser] = state.value;
+  const {
+    aggregations,
+    apiKeys,
+    canManageApiKeys,
+    canManageOwnApiKeys,
+    canManageCrossClusterApiKeys,
+    aggregationTotal: totalKeys,
+    total: filteredItemTotal,
+    queryError,
+  } = apiKeysResult;
 
   const categorizedApiKeys = !queryError
     ? apiKeys.map((apiKey) => apiKey as CategorizedApiKey)
@@ -213,6 +236,7 @@ export const APIKeysGridPage: FunctionComponent = () => {
           }}
           onCancel={() => setOpenedApiKey(undefined)}
           apiKey={openedApiKey}
+          userProfiles={userProfiles}
           readOnly={readOnly}
           canManageCrossClusterApiKeys={canManageCrossClusterApiKeys}
           currentUser={currentUser}
@@ -299,6 +323,7 @@ export const APIKeysGridPage: FunctionComponent = () => {
               {(invalidateApiKeyPrompt) => (
                 <ApiKeysTable
                   apiKeys={categorizedApiKeys}
+                  userProfiles={userProfiles}
                   onClick={(apiKey) => setOpenedApiKey(apiKey)}
                   query={tableState.query}
                   queryFilters={tableState.filters}

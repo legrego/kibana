@@ -28,12 +28,18 @@ import type { CustomComponentProps } from '@elastic/eui/src/components/search_ba
 import type { FunctionComponent } from 'react';
 import React, { createContext, useContext, useState } from 'react';
 
+import type {
+  UserProfile,
+  UserProfileData,
+  UserProfileUserInfo,
+} from '@kbn/core-user-profile-common';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
 import type { CreateAPIKeyResult, QueryApiKeySortOptions } from '@kbn/security-api-key-management';
 import { ApiKeyBadge, ApiKeyStatus, TimeToolTip } from '@kbn/security-api-key-management';
 import type { ApiKeyAggregations, CategorizedApiKey } from '@kbn/security-plugin-types-common';
-import { UserAvatar, UserProfilesPopover } from '@kbn/user-profile-components';
+import type { UserProfileWithAvatar } from '@kbn/user-profile-components';
+import { getUserDisplayName, UserAvatar, UserProfilesPopover } from '@kbn/user-profile-components';
 
 import { ApiKeysEmptyPrompt, doesErrorIndicateBadQuery } from './api_keys_empty_prompt';
 import type { AuthenticatedUser } from '../../../../common';
@@ -48,6 +54,7 @@ export interface TablePagination {
 
 export interface ApiKeysTableProps {
   apiKeys: CategorizedApiKey[];
+  userProfiles: Map<string, UserProfile<UserProfileData>>;
   queryFilters: QueryFilters;
   currentUser: AuthenticatedUser;
   createdApiKey?: CreateAPIKeyResult;
@@ -86,6 +93,7 @@ const FiltersContext = createContext<{
 
 export const ApiKeysTable: FunctionComponent<ApiKeysTableProps> = ({
   apiKeys,
+  userProfiles,
   createdApiKey,
   currentUser,
   onClick,
@@ -168,7 +176,13 @@ export const ApiKeysTable: FunctionComponent<ApiKeysTableProps> = ({
         />
       ),
       sortable: true,
-      render: (username: CategorizedApiKey['username']) => <UsernameWithIcon username={username} />,
+      render: (username: CategorizedApiKey['username'], record) => (
+        <UserColumn
+          username={username}
+          profileUid={record.profile_uid}
+          userProfiles={userProfiles}
+        />
+      ),
     });
   }
 
@@ -571,6 +585,32 @@ export const UsernameWithIcon: FunctionComponent<UsernameWithIconProps> = ({ use
     </EuiFlexItem>
   </EuiFlexGroup>
 );
+
+const UserColumn: FunctionComponent<{
+  username: string;
+  profileUid?: string;
+  userProfiles: Map<string, UserProfileWithAvatar>;
+}> = ({ username, profileUid, userProfiles }) => {
+  const profile =
+    (profileUid ? userProfiles.get(profileUid) : undefined) ??
+    ({
+      user: { username } as UserProfileUserInfo,
+      data: { avatar: undefined } as UserProfileData,
+    } as UserProfileWithAvatar);
+
+  return (
+    <EuiFlexGroup alignItems="center" gutterSize="s" responsive={false}>
+      <EuiFlexItem grow={false}>
+        <UserAvatar user={profile.user} avatar={profile.data.avatar} size="s" />
+      </EuiFlexItem>
+      <EuiFlexItem grow={false}>
+        <EuiText size="s" data-test-subj="apiKeyUsername">
+          {getUserDisplayName(profile.user)}
+        </EuiText>
+      </EuiFlexItem>
+    </EuiFlexGroup>
+  );
+};
 
 export const categorizeAggregations = (aggregationResponse?: ApiKeyAggregations) => {
   const typeFilters: Array<CategorizedApiKey['type']> = [];
