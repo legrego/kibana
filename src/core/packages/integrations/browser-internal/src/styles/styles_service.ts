@@ -26,7 +26,9 @@ export class StylesService implements CoreService {
 
   public async start({ uiSettings }: StartDeps) {
     const disableAnimationsStyleTag = document.createElement('style');
-    disableAnimationsStyleTag.nonce = 'thisisatestnonce';
+    disableAnimationsStyleTag.nonce = document
+      .querySelector('meta[name="kbn-csp-style-nonce"]')
+      ?.getAttribute('data-nonce') as string;
     disableAnimationsStyleTag.setAttribute('id', 'disableAnimationsCss');
     document.head.appendChild(disableAnimationsStyleTag);
 

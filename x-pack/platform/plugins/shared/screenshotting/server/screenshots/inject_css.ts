@@ -37,8 +37,11 @@ export const injectCustomCss = async (
     await browser.evaluate<string[]>(
       {
         fn: (css) => {
+          const nonce = document
+            .querySelector('meta[name="kbn-csp-style-nonce"]')
+            ?.getAttribute('data-nonce') as string;
           const node = document.createElement('style');
-          node.nonce = 'thisisatestnonce';
+          node.nonce = nonce;
           node.type = 'text/css';
           node.innerHTML = css; // eslint-disable-line no-unsanitized/property
           document.getElementsByTagName('head')[0].appendChild(node);
