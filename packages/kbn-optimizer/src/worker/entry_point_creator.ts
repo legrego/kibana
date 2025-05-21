@@ -16,7 +16,12 @@ module.exports = function ({
     `__kbnBundles__.define('${importId}', __webpack_require__, require.resolve('${requirePath}'))`,
   ]);
 
+  // Note: I _believe_ this webpack nonce is only used for style-loader-based styles, such as scss.
+  // Let's see if this can be removed once all scss is gone.
+
   return {
-    code: lines.join('\n') + "\n__webpack_nonce__ = 'thisisatestnonce';",
+    code:
+      lines.join('\n') +
+      `\n__webpack_nonce__ = document.querySelector('meta[name="kbn-csp-style-nonce"]')?.getAttribute('data-nonce');`,
   };
 };
