@@ -20,7 +20,9 @@ function systemIsDark() {
 function createInlineStyles(content) {
   var head = document.getElementsByTagName('head')[0];
   var style = document.createElement('style');
-  style.nonce = 'thisisatestnonce';
+  style.nonce = document
+    .querySelector('meta[name="kbn-csp-style-nonce"]')
+    ?.getAttribute('data-nonce');
   style.textContent = content;
   head.appendChild(style);
 }
