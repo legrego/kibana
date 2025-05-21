@@ -39,7 +39,7 @@ export const defaultReportOnlyRules: Partial<Record<CspDirectiveName, string[]>>
 export const defaultRules: Partial<Record<CspDirectiveName, string[]>> = {
   'script-src': [`'report-sample'`, `'self'`],
   'worker-src': [`'report-sample'`, `'self'`, `blob:`],
-  'style-src': [`'report-sample'`, `'self'`, `'unsafe-inline'`],
+  'style-src': [`'report-sample'`, `'self'`, `'nonce-thisisatestnonce'`],
 };
 
 /**

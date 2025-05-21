@@ -22,10 +22,11 @@ interface StartDeps {
 export class StylesService implements CoreService {
   private uiSettingsSubscription?: Subscription;
 
-  public async setup() {}
+  public async setup() { }
 
   public async start({ uiSettings }: StartDeps) {
     const disableAnimationsStyleTag = document.createElement('style');
+    disableAnimationsStyleTag.nonce = 'thisisatestnonce';
     disableAnimationsStyleTag.setAttribute('id', 'disableAnimationsCss');
     document.head.appendChild(disableAnimationsStyleTag);
 

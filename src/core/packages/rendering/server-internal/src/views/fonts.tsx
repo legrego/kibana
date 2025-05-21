@@ -13,6 +13,7 @@ import { RenderingMetadata } from '../types';
 
 interface Props {
   url: RenderingMetadata['uiPublicUrl'];
+  nonce: string;
 }
 
 interface FontFace {
@@ -218,13 +219,14 @@ const getRoboto = (url: string): FontFace => {
   };
 };
 
-export const Fonts: FunctionComponent<Props> = ({ url }) => {
+export const Fonts: FunctionComponent<Props> = ({ url, nonce }) => {
   const sansFont = getInter(url);
   const codeFont = getRoboto(url);
 
   /* eslint-disable react/no-danger */
   return (
     <style
+      nonce={nonce}
       dangerouslySetInnerHTML={{
         __html: `
         ${[sansFont, codeFont]

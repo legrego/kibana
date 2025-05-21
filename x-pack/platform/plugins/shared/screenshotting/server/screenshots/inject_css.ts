@@ -38,6 +38,7 @@ export const injectCustomCss = async (
       {
         fn: (css) => {
           const node = document.createElement('style');
+          node.nonce = 'thisisatestnonce';
           node.type = 'text/css';
           node.innerHTML = css; // eslint-disable-line no-unsanitized/property
           document.getElementsByTagName('head')[0].appendChild(node);

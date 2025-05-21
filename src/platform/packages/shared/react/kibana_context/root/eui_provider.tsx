@@ -40,22 +40,29 @@ export interface KibanaEuiProviderProps extends Pick<EuiProviderProps<{}>, 'modi
 // https://eui.elastic.co/#/utilities/provider#cache-location
 const stylisPlugins = [euiStylisPrefixer]; // https://emotion.sh/docs/@emotion/cache#stylisplugins
 
+const nonce =
+  document.querySelector('meta[name="kbn-csp-style-nonce"]')?.getAttribute('data-nonce') ||
+  undefined;
+
 const emotionCache = createCache({
   key: 'css',
   stylisPlugins,
   container: document.querySelector('meta[name="emotion"]') as HTMLElement,
+  nonce,
 });
 
 const globalCache = createCache({
   key: EUI_STYLES_GLOBAL,
   stylisPlugins,
   container: document.querySelector(`meta[name="${EUI_STYLES_GLOBAL}"]`) as HTMLElement,
+  nonce,
 });
 
 const utilitiesCache = createCache({
   key: EUI_STYLES_UTILS,
   stylisPlugins,
   container: document.querySelector(`meta[name="${EUI_STYLES_UTILS}"]`) as HTMLElement,
+  nonce,
 });
 
 // Enable "compat mode" in Emotion caches.

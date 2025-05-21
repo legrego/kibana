@@ -24,6 +24,7 @@ configure({ adapter: new Adapter() });
 function mockEnsureEmotionStyleTag() {
   if (!document.head.querySelector('style[data-emotion]')) {
     const style = document.createElement('style');
+    style.nonce = 'thisisatestnonce';
     style.setAttribute('data-emotion', 'css');
     document.head.appendChild(style);
   }

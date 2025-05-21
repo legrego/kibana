@@ -14,12 +14,15 @@ interface Props {
   darkMode: DarkModeValue;
   themeName: ThemeName;
   stylesheetPaths: string[];
+  nonce: string;
 }
 
-export const Styles: FC<Props> = ({ darkMode, themeName, stylesheetPaths }) => {
+export const Styles: FC<Props> = ({ darkMode, themeName, stylesheetPaths, nonce }) => {
   return (
     <>
-      {darkMode !== 'system' && <InlineStyles darkMode={darkMode} themeName={themeName} />}
+      {darkMode !== 'system' && (
+        <InlineStyles darkMode={darkMode} themeName={themeName} nonce={nonce} />
+      )}
       {stylesheetPaths.map((path) => (
         <link key={path} rel="stylesheet" type="text/css" href={path} />
       ))}
@@ -27,7 +30,11 @@ export const Styles: FC<Props> = ({ darkMode, themeName, stylesheetPaths }) => {
   );
 };
 
-const InlineStyles: FC<{ darkMode: boolean; themeName: ThemeName }> = ({ darkMode, themeName }) => {
+const InlineStyles: FC<{ darkMode: boolean; themeName: ThemeName; nonce: string }> = ({
+  darkMode,
+  themeName,
+  nonce,
+}) => {
   const getThemeStyles = (theme: ThemeName) => {
     if (theme === 'borealis') {
       return {
@@ -53,6 +60,7 @@ const InlineStyles: FC<{ darkMode: boolean; themeName: ThemeName }> = ({ darkMod
   /* eslint-disable react/no-danger */
   return (
     <style
+      nonce={nonce}
       dangerouslySetInnerHTML={{
         __html: `
 

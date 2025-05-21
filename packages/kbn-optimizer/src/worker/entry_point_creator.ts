@@ -17,6 +17,6 @@ module.exports = function ({
   ]);
 
   return {
-    code: lines.join('\n'),
+    code: lines.join('\n') + "\n__webpack_nonce__ = 'thisisatestnonce';",
   };
 };

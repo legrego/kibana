@@ -41,6 +41,7 @@ export const Template: FunctionComponent<Props> = ({
   ) : (
     <Logo />
   );
+  const cspNonce = 'thisisatestnonce';
   return (
     <html lang={locale}>
       <head>
@@ -48,7 +49,7 @@ export const Template: FunctionComponent<Props> = ({
         <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
         <meta name="viewport" content="width=device-width" />
         <title>{title}</title>
-        <Fonts url={uiPublicUrl} />
+        <Fonts url={uiPublicUrl} nonce={cspNonce} />
         {/* The alternate icon is a fallback for Safari which does not yet support SVG favicons */}
         <link rel="alternate icon" type="image/png" href={favIconPng} />
         <link rel="icon" type="image/svg+xml" href={favIcon} />
@@ -56,11 +57,13 @@ export const Template: FunctionComponent<Props> = ({
         <meta name="color-scheme" content="light dark" />
         {/* Inject EUI reset and global styles before all other component styles */}
         <meta name={EUI_STYLES_GLOBAL} />
+        <meta name="kbn-csp-style-nonce" data-nonce={cspNonce} />
         <meta name="emotion" />
         <Styles
           darkMode={darkMode}
           themeName={injectedMetadata.theme.name}
           stylesheetPaths={stylesheetPaths}
+          nonce={cspNonce}
         />
         {scriptPaths.map((path) => (
           <script key={path} src={path} />

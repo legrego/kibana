@@ -20,6 +20,7 @@ function systemIsDark() {
 function createInlineStyles(content) {
   var head = document.getElementsByTagName('head')[0];
   var style = document.createElement('style');
+  style.nonce = 'thisisatestnonce';
   style.textContent = content;
   head.appendChild(style);
 }
