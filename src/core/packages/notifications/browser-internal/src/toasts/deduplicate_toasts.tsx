@@ -116,18 +116,17 @@ function groupByKey(allToasts: Toast[]) {
   return toastGroups;
 }
 
-const floatTopRight = css`
-  position: absolute;
-  top: -8px;
-  right: -8px;
-`;
-
 /**
  * A component that renders a title with a floating counter
  * @param title {string} The title string
  * @param counter {number} The count of notifications represented
  */
 export function TitleWithBadge({ title, counter }: TitleWithBadgeProps) {
+  const floatTopRight = css`
+    position: absolute;
+    top: -8px;
+    right: -8px;
+  `;
   return (
     <React.Fragment>
       {title}{' '}
