@@ -8,7 +8,7 @@
  */
 
 import React, { ReactNode } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 import { EuiNotificationBadge } from '@elastic/eui';
 import { Toast } from '@kbn/core-notifications-browser';

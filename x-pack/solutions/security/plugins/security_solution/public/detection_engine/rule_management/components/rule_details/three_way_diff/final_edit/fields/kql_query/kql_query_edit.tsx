@@ -7,7 +7,7 @@
 
 import React, { useCallback } from 'react';
 import useToggle from 'react-use/lib/useToggle';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiButtonEmpty } from '@elastic/eui';
 import type { DataViewBase } from '@kbn/es-query';
 import { schema } from '../../../../../../../rule_creation_ui/components/step_define_rule/schema';

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { useEuiTheme } from '@elastic/eui';
 
 export function NestedView({

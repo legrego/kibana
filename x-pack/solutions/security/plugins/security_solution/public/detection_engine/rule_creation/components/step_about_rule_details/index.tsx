@@ -20,7 +20,7 @@ import { isEmpty } from 'lodash';
 import type { PropsWithChildren } from 'react';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { RuleAboutSection } from '../../../rule_management/components/rule_details/rule_about_section';
 import { HeaderSection } from '../../../../common/components/header_section';
 import { MarkdownRenderer } from '../../../../common/components/markdown_editor';

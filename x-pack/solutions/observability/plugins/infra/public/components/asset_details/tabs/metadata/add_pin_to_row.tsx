@@ -7,7 +7,7 @@
 
 import type { Dispatch } from 'react';
 import React from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { i18n } from '@kbn/i18n';
 import { EuiToolTip, EuiButtonIcon, useEuiTheme, euiCanAnimate } from '@elastic/eui';
 import type { Field } from './utils';

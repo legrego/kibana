@@ -17,7 +17,7 @@ import {
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
 import React, { memo } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 import type { AgentPolicy, Agent } from '../../common/types';
 import { useLink } from '../hooks';

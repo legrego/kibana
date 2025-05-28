@@ -8,7 +8,7 @@
  */
 
 import { type EuiThemeComputed } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 const PANEL_WIDTH = '248px';
 

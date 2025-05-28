@@ -16,7 +16,7 @@ import {
   EuiButtonEmpty,
   EuiPopoverFooter,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { CoverageOverviewRuleSource } from '../../../../../common/api/detection_engine';
 import {
   coverageOverviewFilterWidth,

@@ -11,7 +11,7 @@ import type { EuiAccordionProps, EuiTextProps } from '@elastic/eui';
 import { EuiAccordion, EuiBasicTable, EuiSpacer, EuiText, useGeneratedHtmlId } from '@elastic/eui';
 import styled from 'styled-components';
 import { FormattedMessage } from '@kbn/i18n-react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { useUserPrivileges } from '../../../common/components/user_privileges';
 import { useTestIdGenerator } from '../../hooks/use_test_id_generator';
 import { ResponseActionFileDownloadLink } from '../response_action_file_download_link';

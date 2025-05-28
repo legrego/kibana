@@ -6,7 +6,7 @@
  */
 
 import React, { ElementType } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiExpression, EuiBadge } from '@elastic/eui';
 import type { ListOperatorTypeEnum } from '@kbn/securitysolution-io-ts-list-types';
 import { ValueWithSpaceWarning } from '../../../..';

@@ -9,7 +9,7 @@ import type { FC } from 'react';
 import React from 'react';
 import { EuiLink, useEuiTheme } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { SESSION_VIEW_UPSELL_TEST_ID, SESSION_VIEW_NO_DATA_TEST_ID } from './test_ids';
 
 interface SessionViewNoDataMessageProps {

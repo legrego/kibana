@@ -15,27 +15,27 @@ import {
 } from '@elastic/eui';
 import React from 'react';
 import { i18n } from '@kbn/i18n';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { UseGenAIConnectorsResult } from '../../hooks/use_genai_connectors';
 
 type ConnectorSelectorBaseProps = UseGenAIConnectorsResult;
 
-const wrapperClassName = css`
-  height: 32px;
-
-  .euiSuperSelectControl {
-    border: none;
-    box-shadow: none;
-    background: none;
-    padding-left: 0;
-  }
-`;
-
-const smallFontClassName = css`
-  font-size: 12px;
-`;
-
 export function ConnectorSelectorBase(props: ConnectorSelectorBaseProps) {
+  const wrapperClassName = css`
+    height: 32px;
+
+    .euiSuperSelectControl {
+      border: none;
+      box-shadow: none;
+      background: none;
+      padding-left: 0;
+    }
+  `;
+
+  const smallFontClassName = css`
+    font-size: 12px;
+  `;
+
   if (props.loading) {
     return (
       <EuiFlexGroup alignItems="center" className={wrapperClassName}>

@@ -7,7 +7,7 @@
 
 import React, { memo } from 'react';
 
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiBadge, EuiFlexGroup, EuiFlexItem, EuiText, useEuiTheme } from '@elastic/eui';
 
 interface TitleBadgeProps {

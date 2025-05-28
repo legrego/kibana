@@ -59,6 +59,9 @@ export const KibanaRootContextProvider: FC<PropsWithChildren<KibanaRootContextPr
   );
 
   if (hasEuiProvider) {
+    console.warn(
+      'KibanaRootContextProvider has likely been nested in this React tree, either by direct reference or by KibanaRenderContextProvider.  The result of this nesting is a nesting of EuiProvider, which has negative effects.  Check your React tree for nested Kibana context providers.'
+    );
     emitEuiProviderWarning(
       'KibanaRootContextProvider has likely been nested in this React tree, either by direct reference or by KibanaRenderContextProvider.  The result of this nesting is a nesting of EuiProvider, which has negative effects.  Check your React tree for nested Kibana context providers.'
     );

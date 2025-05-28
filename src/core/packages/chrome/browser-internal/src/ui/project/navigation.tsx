@@ -11,7 +11,7 @@ import React, { FC, PropsWithChildren } from 'react';
 import { EuiCollapsibleNavBeta } from '@elastic/eui';
 import useObservable from 'react-use/lib/useObservable';
 import type { Observable } from 'rxjs';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 interface Props {
   toggleSideNav: (isVisible: boolean) => void;

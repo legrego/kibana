@@ -6,7 +6,7 @@
  */
 
 import { transparentize, type EuiThemeComputed, euiFontSize, type UseEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 const EUI_HEADER_HEIGHT = '96px';
 const PANEL_LEFT_OFFSET = '249px';

@@ -7,7 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { euiThemeVars } from '@kbn/ui-theme';
 import type { EuiThemeComputed } from '@elastic/eui';
 

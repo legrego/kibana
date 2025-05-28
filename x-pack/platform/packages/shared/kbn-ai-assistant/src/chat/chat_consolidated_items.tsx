@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { i18n } from '@kbn/i18n';
 import { EuiAvatar, EuiButtonIcon, EuiComment, EuiLink } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { ChatItem } from './chat_item';
 import type { ChatTimelineItem, ChatTimelineProps } from './chat_timeline';
 

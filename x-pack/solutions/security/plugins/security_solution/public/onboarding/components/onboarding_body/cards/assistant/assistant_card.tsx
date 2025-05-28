@@ -7,7 +7,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { EuiFlexGroup, EuiFlexItem, EuiIcon, EuiLink } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import {
   useAssistantContext,
   type Conversation,

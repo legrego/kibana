@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { EuiAccordion, EuiSplitPanel, useEuiTheme, useGeneratedHtmlId } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { PropsWithChildren } from 'react';
 
 interface SplitAccordionProps {

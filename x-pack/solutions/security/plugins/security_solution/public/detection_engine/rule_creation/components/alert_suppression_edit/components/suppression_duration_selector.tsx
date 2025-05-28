@@ -7,7 +7,7 @@
 
 import React, { memo, useEffect } from 'react';
 import { EuiFormRow, EuiRadioGroup, EuiToolTip, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { FieldHook } from '../../../../../shared_imports';
 import { UseMultiFields } from '../../../../../shared_imports';
 import { AlertSuppressionDurationType } from '../../../../common/types';

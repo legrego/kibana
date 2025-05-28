@@ -18,7 +18,7 @@ import {
   DragDropContextProps,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import React from 'react';
 import { NestedView } from '../../nested_view';
 import { CurrentStreamEntry } from './current_stream_entry';

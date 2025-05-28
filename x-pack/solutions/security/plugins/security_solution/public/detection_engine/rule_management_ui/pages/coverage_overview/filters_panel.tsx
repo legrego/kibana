@@ -14,7 +14,7 @@ import {
   EuiSearchBar,
 } from '@elastic/eui';
 import React, { memo, useCallback } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { CoverageOverviewLegend } from './shared_components/dashboard_legend';
 import * as i18n from './translations';
 import { useCoverageOverviewDashboardContext } from './coverage_overview_dashboard_context';

@@ -7,7 +7,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { EuiButton, EuiFilePicker, EuiToolTip } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { useImportList, useInvalidateListItemQuery } from '@kbn/securitysolution-list-hooks';
 import type { Type as ListType } from '@kbn/securitysolution-io-ts-list-types';
 import { useKibana } from '../../common/lib/kibana';

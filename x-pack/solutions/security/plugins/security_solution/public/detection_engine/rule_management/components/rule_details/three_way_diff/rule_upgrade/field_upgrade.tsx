@@ -8,7 +8,7 @@
 import React from 'react';
 import { snakeCase } from 'lodash';
 import { EuiFlexGroup, EuiFlexItem, EuiSpacer, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { SplitAccordion } from '../../../../../../common/components/split_accordion';
 import { FieldComparisonSide } from '../comparison_side/field_comparison_side';
 import { FieldFinalSide } from '../field_final_side';

@@ -6,7 +6,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import usePrevious from 'react-use/lib/usePrevious';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { CodeEditor } from '@kbn/code-editor';
 import { monaco } from '@kbn/monaco';
 import { i18n } from '@kbn/i18n';

@@ -14,7 +14,7 @@ import {
   EuiText,
   EuiTitle,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { uniq } from 'lodash';
 import { useAIAssistantAppService } from '../hooks/use_ai_assistant_app_service';
 import { useGenAIConnectors } from '../hooks/use_genai_connectors';

@@ -12,7 +12,7 @@ import {
   EuiResizableContainer,
   useIsWithinBreakpoints,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { Streams } from '@kbn/streams-schema';
 import React from 'react';
 import { useUnsavedChangesPrompt } from '@kbn/unsaved-changes-prompt';

@@ -6,7 +6,7 @@
  */
 
 import React, { memo, useState, useCallback, useMemo, useEffect } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { EuiCommentProps } from '@elastic/eui';
 import {
   EuiTextArea,

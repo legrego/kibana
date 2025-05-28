@@ -6,7 +6,7 @@
  */
 
 import { EuiPanel } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { rgba } from 'polished';
 import React from 'react';
 import { useTheme } from '../../../hooks/use_theme';

@@ -14,7 +14,7 @@ import {
   useEuiTheme,
 } from '@elastic/eui';
 import React from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import * as i18n from '../json_diff/translations';
 
 export const RuleDiffHeaderBar = () => {

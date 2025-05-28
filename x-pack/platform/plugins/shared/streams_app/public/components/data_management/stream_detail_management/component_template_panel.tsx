@@ -21,7 +21,7 @@ import type {
   UnmanagedComponentTemplateDetails,
   UnmanagedElasticsearchAssetDetails,
 } from '@kbn/streams-plugin/server/lib/streams/stream_crud';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { ManagedBadge } from './managed_badge';
 
 export function ComponentTemplatePanel({

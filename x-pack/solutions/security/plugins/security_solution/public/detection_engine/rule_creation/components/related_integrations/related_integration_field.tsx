@@ -9,7 +9,7 @@ import type { ChangeEvent } from 'react';
 import React, { useCallback, useMemo } from 'react';
 import { capitalize } from 'lodash';
 import semver from 'semver';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { EuiComboBoxOptionOption } from '@elastic/eui';
 import {
   EuiTextTruncate,

@@ -6,7 +6,7 @@
  */
 
 import { COLOR_MODES_STANDARD, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 export const useCardStyles = () => {
   const { euiTheme, colorMode } = useEuiTheme();

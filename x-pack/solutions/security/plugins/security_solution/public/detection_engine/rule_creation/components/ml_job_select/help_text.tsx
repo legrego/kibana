@@ -7,7 +7,7 @@
 
 import React, { memo, useMemo } from 'react';
 import { EuiLink, EuiText } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 import { FormattedMessage } from '@kbn/i18n-react';
 import { isJobStarted } from '../../../../../common/machine_learning/helpers';

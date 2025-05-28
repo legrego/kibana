@@ -31,7 +31,7 @@ import {
 import { KibanaPageTemplate } from '@kbn/shared-ux-page-kibana-template';
 import { IntegrationType } from '@kbn/wci-common';
 import { i18n } from '@kbn/i18n';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { Integration } from '../../../../../common/integrations';
 import { useNavigation } from '../../../hooks/use_navigation';
 import { appPaths } from '../../../app_paths';

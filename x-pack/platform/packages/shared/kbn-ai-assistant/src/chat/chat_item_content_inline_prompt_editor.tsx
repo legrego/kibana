@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { noop } from 'lodash';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiPanel } from '@elastic/eui';
 import { Message } from '@kbn/observability-ai-assistant-plugin/common';
 import {

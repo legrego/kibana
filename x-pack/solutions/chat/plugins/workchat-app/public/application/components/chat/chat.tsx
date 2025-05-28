@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useRef, useEffect } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiFlexItem, EuiPanel, useEuiTheme, euiScrollBarStyles } from '@elastic/eui';
 import type { AuthenticatedUser } from '@kbn/core/public';
 import { ConversationEventChanges } from '../../../../common/chat_events';

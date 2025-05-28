@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import {
   EuiButton,
   EuiFlexGroup,

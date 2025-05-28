@@ -14,7 +14,7 @@ import {
   EuiText,
   EuiThemeComputed,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { i18n } from '@kbn/i18n';
 import { formatInteger } from '@kbn/observability-utils-common/format/integer';
 import { highlightPatternFromRegex } from '@kbn/observability-utils-common/llm/log_analysis/highlight_patterns_from_regex';

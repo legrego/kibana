@@ -19,7 +19,7 @@ import {
   useCurrentEuiBreakpoint,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { AssistantIcon } from '@kbn/ai-assistant-icon';
 import { Conversation, ConversationAccess } from '@kbn/observability-ai-assistant-plugin/common';
 import { ChatActionsMenu } from './chat_actions_menu';

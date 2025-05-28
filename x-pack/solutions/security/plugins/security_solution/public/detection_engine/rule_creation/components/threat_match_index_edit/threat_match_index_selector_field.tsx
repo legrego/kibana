@@ -7,7 +7,7 @@
 
 import React, { memo, useCallback } from 'react';
 import { isEqual } from 'lodash';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiText, EuiButtonEmpty, useEuiTheme } from '@elastic/eui';
 import { ComboBoxField } from '@kbn/es-ui-shared-plugin/static/forms/components';
 import { DEFAULT_THREAT_INDEX_KEY } from '../../../../../common/constants';

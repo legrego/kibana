@@ -8,7 +8,7 @@
  */
 
 import { EuiThemeComputed } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 export const filtersBuilderMaxHeightCss = (euiTheme: EuiThemeComputed) => css`
   max-height: ${euiTheme.size.base} * 10;

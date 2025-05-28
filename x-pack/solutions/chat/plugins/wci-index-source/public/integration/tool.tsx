@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiText, EuiTextColor } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
 import { IntegrationToolComponentProps } from '@kbn/wci-browser';

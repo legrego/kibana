@@ -7,7 +7,7 @@
 
 import React, { useCallback } from 'react';
 import { isEqual } from 'lodash';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiButtonEmpty, useEuiTheme } from '@elastic/eui';
 import { useDefaultIndexPattern } from '../../../../../../hooks/use_default_index_pattern';
 import type { FieldHook } from '../../../../../../../../shared_imports';

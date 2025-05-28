@@ -6,7 +6,7 @@
  */
 
 import { useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { PAGE_CONTENT_WIDTH } from '../../constants';
 
 export const useOnboardingHeaderStyles = () => {

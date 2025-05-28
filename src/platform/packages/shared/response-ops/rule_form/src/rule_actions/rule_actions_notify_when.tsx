@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { css } from '@emotion/css'; // We can't use @emotion/react - this component gets used with plugins that use both styled-components and Emotion
+import { css } from '@emotion/react'; // We can't use @emotion/react - this component gets used with plugins that use both styled-components and Emotion
 import { i18n } from '@kbn/i18n';
 import {
   RuleNotifyWhenType,

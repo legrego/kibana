@@ -6,7 +6,7 @@
  */
 
 import { EuiAccordion, EuiErrorBoundary, EuiSpacer, EuiText, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { FC, PropsWithChildren } from 'react';
 import React from 'react';
 

@@ -18,7 +18,7 @@ import {
   EuiTitle,
   EuiToolTip,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import React, { memo, useCallback, useState } from 'react';
 import { i18n } from '@kbn/i18n';
 import { changePushVsOverlayAction, resetAllUserChangedWidthsAction } from '../store/actions';

@@ -6,7 +6,7 @@
  */
 
 import React, { type ReactNode, useMemo } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiCommentList } from '@elastic/eui';
 import type { AuthenticatedUser } from '@kbn/security-plugin/common';
 import { omit } from 'lodash';

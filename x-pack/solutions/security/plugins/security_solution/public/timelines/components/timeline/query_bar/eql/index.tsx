@@ -9,7 +9,7 @@ import { isEqual } from 'lodash';
 import React, { memo, useCallback, useEffect, useMemo } from 'react';
 import { EuiOutsideClickDetector } from '@elastic/eui';
 import { useDispatch } from 'react-redux';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 import { useEnableExperimental } from '../../../../../common/hooks/use_experimental_features';
 import { useDataViewSpec } from '../../../../../data_view_manager/hooks/use_data_view_spec';

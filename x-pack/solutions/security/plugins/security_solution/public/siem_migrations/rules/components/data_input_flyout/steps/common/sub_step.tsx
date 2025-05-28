@@ -6,7 +6,7 @@
  */
 
 import { EuiPanel, EuiSteps, type EuiStepProps } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import React from 'react';
 
 const style = css`

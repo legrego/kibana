@@ -20,7 +20,7 @@ import {
   UseEuiTheme,
   useEuiTheme,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { i18n } from '@kbn/i18n';
 import React, { MouseEvent, useEffect, useMemo, useState } from 'react';
 import type { AuthenticatedUser } from '@kbn/security-plugin/common';
@@ -35,33 +35,6 @@ enum ListSections {
   CONVERSATIONS = 'conversations',
   ARCHIVED = 'archived',
 }
-
-const panelClassName = css`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding-top: 56px;
-`;
-
-const scrollSectionClass = (scrollBarStyles: string) => css`
-  overflow-y: auto;
-  max-height: ${Math.floor(window.innerHeight * 0.7)}px;
-  ${scrollBarStyles}
-`;
-
-const newChatButtonWrapperClassName = css`
-  padding-bottom: 5px;
-`;
-
-const titleClassName = css`
-  text-transform: uppercase;
-  font-weight: bold;
-`;
-
-const containerClassName = (theme: UseEuiTheme) => css`
-  height: 100%;
-  border-top: solid 1px ${theme.euiTheme.border.color};
-`;
 
 export function ConversationList({
   conversations,
@@ -86,6 +59,33 @@ export function ConversationList({
   refreshConversations: () => void;
   updateDisplayedConversation: (id?: string) => void;
 }) {
+  const panelClassName = css`
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-top: 56px;
+  `;
+
+  const scrollSectionClass = (scrollBarStyles: string) => css`
+    overflow-y: auto;
+    max-height: ${Math.floor(window.innerHeight * 0.7)}px;
+    ${scrollBarStyles}
+  `;
+
+  const newChatButtonWrapperClassName = css`
+    padding-bottom: 5px;
+  `;
+
+  const titleClassName = css`
+    text-transform: uppercase;
+    font-weight: bold;
+  `;
+
+  const containerClassName = (theme: UseEuiTheme) => css`
+    height: 100%;
+    border-top: solid 1px ${theme.euiTheme.border.color};
+  `;
+
   const euiTheme = useEuiTheme();
   const scrollBarStyles = euiScrollBarStyles(euiTheme);
 

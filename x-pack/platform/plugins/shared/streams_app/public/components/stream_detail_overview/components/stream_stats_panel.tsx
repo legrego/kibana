@@ -13,7 +13,7 @@ import {
   formatNumber,
   useEuiTheme,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { i18n } from '@kbn/i18n';
 import React, { ReactNode } from 'react';
 import { type Streams, isDslLifecycle, isIlmLifecycle } from '@kbn/streams-schema';

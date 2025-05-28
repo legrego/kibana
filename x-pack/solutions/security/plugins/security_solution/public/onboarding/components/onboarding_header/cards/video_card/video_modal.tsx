@@ -17,7 +17,7 @@ import {
   EuiText,
   useGeneratedHtmlId,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { ONBOARDING_VIDEO_SOURCE } from '../../../../../common/constants';
 import * as i18n from './translations';
 

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 export const DataViewIllustration = () => {
   const { euiTheme } = useEuiTheme();

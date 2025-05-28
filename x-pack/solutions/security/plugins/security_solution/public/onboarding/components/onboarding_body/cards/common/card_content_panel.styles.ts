@@ -5,7 +5,7 @@
  * 2.0.
  */
 
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { COLOR_MODES_STANDARD, useEuiTheme } from '@elastic/eui';
 import { useDarkPanelStyles } from '../../onboarding_card_panel.styles';
 

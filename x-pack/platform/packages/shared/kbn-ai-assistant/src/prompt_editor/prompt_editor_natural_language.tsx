@@ -5,7 +5,7 @@
  * 2.0.
  */
 import React, { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiInputPopover, EuiSelectable, EuiTextArea } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { MessageRole } from '@kbn/observability-ai-assistant-plugin/public';

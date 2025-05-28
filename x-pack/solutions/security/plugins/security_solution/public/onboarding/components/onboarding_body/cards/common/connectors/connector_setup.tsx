@@ -8,7 +8,7 @@
 import React, { useCallback, useState } from 'react';
 import { type ActionConnector } from '@kbn/triggers-actions-ui-plugin/public/common/constants';
 import { EuiFlexGroup, EuiFlexItem, EuiIcon, EuiPanel, EuiButton } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { ActionType } from '@kbn/actions-plugin/common';
 import { AddConnectorModal } from '@kbn/elastic-assistant/impl/connectorland/add_connector_modal';
 import * as i18n from './translations';

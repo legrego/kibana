@@ -5,7 +5,7 @@
  * 2.0.
  */
 import { EuiFlexGroup, EuiPanel, EuiTab, EuiTabs } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import React, { useState, ReactNode } from 'react';
 
 interface Tab {

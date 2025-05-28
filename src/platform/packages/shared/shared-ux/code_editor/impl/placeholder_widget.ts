@@ -8,7 +8,7 @@
  */
 
 import { monaco } from '@kbn/monaco';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { EuiThemeComputed } from '@elastic/eui';
 
 export class PlaceholderWidget implements monaco.editor.IContentWidget {

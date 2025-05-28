@@ -20,7 +20,7 @@ import {
   EuiHorizontalRule,
   EuiPanel,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { useKibana } from '../hooks/use_kibana';
 import type { UseKnowledgeBaseResult } from '../hooks/use_knowledge_base';
 

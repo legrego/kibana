@@ -12,7 +12,7 @@ import {
   getFieldValidityAndErrorMessage,
   type FieldHook,
 } from '@kbn/es-ui-shared-plugin/static/forms/hook_form_lib';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { DEFAULT_MAX_SIGNALS } from '../../../../../common/constants';
 import * as i18n from './translations';
 import { useKibana } from '../../../../common/lib/kibana';

@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useState, KeyboardEvent } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import {
   EuiButtonIcon,
   EuiFlexGroup,

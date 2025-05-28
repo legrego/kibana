@@ -9,7 +9,7 @@ import React from 'react';
 
 import { COLOR_MODES_STANDARD, EuiCallOut, EuiSpacer, EuiToolTip, useEuiTheme } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 import { installationStatuses } from '../../../../../../common/constants';
 import type { EpmPackageInstallStatus } from '../../../../../../common/types';

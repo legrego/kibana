@@ -5,7 +5,7 @@
  * 2.0.
  */
 import React, { useState, useCallback } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import type { EuiSearchBarProps } from '@elastic/eui';
 import {

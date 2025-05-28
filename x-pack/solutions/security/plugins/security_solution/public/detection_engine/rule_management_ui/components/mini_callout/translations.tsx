@@ -8,7 +8,7 @@
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
 import { EuiLink } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import React from 'react';
 
 export const DISMISS = i18n.translate('xpack.securitySolution.detectionEngine.rules.dismissTitle', {

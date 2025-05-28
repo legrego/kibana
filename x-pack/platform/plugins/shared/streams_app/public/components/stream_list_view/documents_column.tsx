@@ -8,7 +8,7 @@
 import React from 'react';
 import { EuiFlexGroup, EuiFlexItem, EuiI18nNumber, EuiSkeletonRectangle } from '@elastic/eui';
 import { euiThemeVars } from '@kbn/ui-theme';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import {
   BarSeries,
   Chart,

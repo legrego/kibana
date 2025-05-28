@@ -8,7 +8,7 @@
 import React from 'react';
 
 import { EuiHealth, EuiToolTip, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { AttackDiscoverySchedule } from '@kbn/elastic-assistant-common';
 
 import {

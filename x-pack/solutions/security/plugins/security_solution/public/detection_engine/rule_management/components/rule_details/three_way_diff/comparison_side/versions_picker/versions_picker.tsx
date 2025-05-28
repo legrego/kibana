@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiSelect } from '@elastic/eui';
 import { getOptionDetails } from '../utils';
 import * as i18n from './translations';

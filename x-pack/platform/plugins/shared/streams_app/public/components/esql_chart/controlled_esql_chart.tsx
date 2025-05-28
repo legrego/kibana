@@ -22,7 +22,7 @@ import {
 import { useElasticChartsTheme } from '@kbn/charts-theme';
 import { EuiFlexGroup, EuiFlexItem, EuiIcon, EuiSpacer } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { AbortableAsyncState } from '@kbn/react-hooks';
 import type { UnparsedEsqlResponse } from '@kbn/traced-es-client';
 import { IUiSettingsClient } from '@kbn/core/public';

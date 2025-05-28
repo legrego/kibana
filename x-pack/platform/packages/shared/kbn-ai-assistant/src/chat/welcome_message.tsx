@@ -6,7 +6,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiFlexGroup, EuiFlexItem, EuiSpacer, useCurrentEuiBreakpoint } from '@elastic/eui';
 import type { ActionConnector } from '@kbn/triggers-actions-ui-plugin/public';
 import { GenerativeAIForObservabilityConnectorFeatureId } from '@kbn/actions-plugin/common';

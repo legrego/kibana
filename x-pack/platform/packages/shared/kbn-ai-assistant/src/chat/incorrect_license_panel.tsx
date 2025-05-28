@@ -17,7 +17,7 @@ import {
   EuiTitle,
   useEuiTheme,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { i18n } from '@kbn/i18n';
 import { elasticAiAssistantImage } from '@kbn/observability-ai-assistant-plugin/public';
 import { UPGRADE_LICENSE_TITLE } from '../i18n';

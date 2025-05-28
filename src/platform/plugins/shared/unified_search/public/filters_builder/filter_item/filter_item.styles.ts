@@ -8,7 +8,7 @@
  */
 
 import { EuiThemeComputed } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 import add from '../assets/add.svg';
 import or from '../assets/or.svg';

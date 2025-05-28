@@ -6,7 +6,7 @@
  */
 import { EuiAccordion, EuiSpacer, EuiTitle } from '@elastic/eui';
 import React from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { FieldsGroupDiff } from '../../../model/rule_details/rule_field_diff';
 import { FieldGroupDiffComponent } from './field_diff';
 

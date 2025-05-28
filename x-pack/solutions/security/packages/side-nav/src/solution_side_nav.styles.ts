@@ -6,7 +6,7 @@
  */
 
 import { transparentize, type EuiThemeComputed } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 export const SolutionSideNavItemStyles = (euiTheme: EuiThemeComputed<{}>) => css`
   * {

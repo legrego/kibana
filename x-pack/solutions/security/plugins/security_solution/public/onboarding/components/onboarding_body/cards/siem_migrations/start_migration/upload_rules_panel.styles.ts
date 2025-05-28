@@ -5,7 +5,7 @@
  * 2.0.
  */
 
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 export const useStyles = (compressed: boolean) => {
   const logoSize = compressed ? '32px' : '88px';

@@ -11,7 +11,7 @@ import { EuiFlexGroup, EuiHealth, EuiLink, EuiPanel, EuiText } from '@elastic/eu
 import type { UnmanagedElasticsearchAssetDetails } from '@kbn/streams-plugin/server/lib/streams/stream_crud';
 import { IndexManagementLocatorParams } from '@kbn/index-management-shared-types';
 import { LocatorPublic } from '@kbn/share-plugin/public';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { HealthStatus } from '@elastic/elasticsearch/lib/api/types';
 import { ManagedBadge } from './managed_badge';
 

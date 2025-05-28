@@ -20,7 +20,7 @@ import {
 } from '@elastic/eui';
 import type { FC } from 'react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { DataViewBase } from '@kbn/es-query';
 import type { DebouncedFunc } from 'lodash';
 import { debounce, isEmpty } from 'lodash';

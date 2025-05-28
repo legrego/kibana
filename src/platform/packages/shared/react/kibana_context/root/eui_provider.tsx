@@ -119,6 +119,8 @@ export const KibanaEuiProvider: FC<PropsWithChildren<KibanaEuiProviderProps>> = 
   // elsewhere.  Should be a passive addition to anyone using the older theme provider(s).
   const globalStyles = globalStylesProp === false ? false : undefined;
 
+  console.warn('Creating EuiProvider with cache and children', { cache, children });
+
   return (
     <EuiProvider
       {...{

@@ -7,7 +7,7 @@
 
 import React, { useContext, useMemo } from 'react';
 import { EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import classNames from 'classnames';
 import { TimelineContext } from '../../timeline/context';
 import { getSourcererScopeId } from '../../../../helpers';

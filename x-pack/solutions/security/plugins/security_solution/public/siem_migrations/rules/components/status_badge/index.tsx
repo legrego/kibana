@@ -8,7 +8,7 @@
 import React from 'react';
 
 import { EuiFlexGroup, EuiFlexItem, EuiHealth, EuiIcon, EuiToolTip } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { RuleTranslationResult } from '../../../../../common/siem_migrations/constants';
 import {
   convertTranslationResultIntoText,

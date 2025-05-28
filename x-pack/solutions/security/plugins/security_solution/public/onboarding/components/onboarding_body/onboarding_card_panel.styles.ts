@@ -6,7 +6,7 @@
  */
 
 import { COLOR_MODES_STANDARD, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 export const HEIGHT_ANIMATION_DURATION = 250;
 
@@ -25,8 +25,8 @@ export const useCardPanelStyles = () => {
       padding: ${euiTheme.size.m};
       border-radius: 50%;
       background-color: ${isDarkMode
-        ? euiTheme.colors.lightShade
-        : euiTheme.colors.backgroundBaseSubdued};
+      ? euiTheme.colors.lightShade
+      : euiTheme.colors.backgroundBaseSubdued};
       display: flex;
       align-items: center;
     }

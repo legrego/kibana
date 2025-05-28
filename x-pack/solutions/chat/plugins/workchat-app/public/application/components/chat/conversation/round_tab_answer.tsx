@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { ContentRef } from '@kbn/wci-common';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import {
   EuiPanel,
   EuiText,

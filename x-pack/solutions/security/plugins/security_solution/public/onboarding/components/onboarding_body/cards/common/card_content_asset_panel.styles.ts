@@ -5,7 +5,7 @@
  * 2.0.
  */
 
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { useEuiTheme, useEuiShadow } from '@elastic/eui';
 
 export const useCardContentAssetPanelStyles = () => {

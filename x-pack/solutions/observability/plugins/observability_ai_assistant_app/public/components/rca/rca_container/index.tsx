@@ -20,7 +20,7 @@ import type {
 } from '@kbn/observability-ai-server/root_cause_analysis';
 import { findLast } from 'lodash';
 import React from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EntityBadge } from '../entity_badge';
 import { RootCauseAnalysisCallout } from '../rca_callout';
 import { RootCauseAnalysisEntityInvestigation } from '../rca_entity_investigation';

@@ -7,7 +7,7 @@
 
 import type { FC, PropsWithChildren } from 'react';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { euiThemeVars } from '@kbn/ui-theme';
 import {
   EuiButtonEmpty,

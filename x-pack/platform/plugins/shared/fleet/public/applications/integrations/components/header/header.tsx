@@ -15,7 +15,7 @@ import {
   EuiToolTip,
   EuiButtonEmpty,
 } from '@elastic/eui';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import type { AppMountParameters } from '@kbn/core/public';
 
 import type { FleetStartServices } from '../../../../plugin';

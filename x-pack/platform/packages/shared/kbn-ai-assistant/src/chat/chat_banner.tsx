@@ -6,7 +6,7 @@
  */
 
 import React, { ReactNode } from 'react';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 import { EuiText, EuiFlexGroup, EuiFlexItem, EuiIcon, EuiPanel, useEuiTheme } from '@elastic/eui';
 
 export function ChatBanner({

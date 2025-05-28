@@ -18,7 +18,7 @@ import {
   useEuiTheme,
   UseEuiTheme,
 } from '@elastic/eui';
-import { css, keyframes } from '@emotion/css';
+import { css, keyframes } from '@emotion/react';
 import { i18n } from '@kbn/i18n';
 import type {
   Conversation,

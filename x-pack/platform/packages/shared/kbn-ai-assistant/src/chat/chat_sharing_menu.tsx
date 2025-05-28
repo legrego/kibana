@@ -20,7 +20,7 @@ import {
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { ConversationAccess } from '@kbn/observability-ai-assistant-plugin/public';
-import { css } from '@emotion/css';
+import { css } from '@emotion/react';
 
 const iconOnlyBadgeStyle = css`
   .euiBadge__icon {
