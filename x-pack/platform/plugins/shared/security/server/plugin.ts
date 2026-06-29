@@ -6,7 +6,7 @@
  */
 
 import type { Subscription } from 'rxjs';
-import { map } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 
 import type { CloudSetup, CloudStart } from '@kbn/cloud-plugin/server';
 import type { TypeOf } from '@kbn/config-schema';
@@ -276,6 +276,14 @@ export class SecurityPlugin
       getCurrentUser,
       recordAuditLoggingUsage: () => this.getFeatureUsageService().recordAuditLoggingUsage(),
     });
+
+    core.status.set(
+      combineLatest([core.status.derivedStatus$, this.auditService.auditStatus$]).pipe(
+        map(([derivedStatus, auditStatus]) =>
+          auditStatus.level > derivedStatus.level ? auditStatus : derivedStatus
+        )
+      )
+    );
 
     this.anonymousAccessService.setup();
 

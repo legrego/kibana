@@ -5,9 +5,12 @@
  * 2.0.
  */
 
+import { accessSync, mkdirSync } from 'fs';
 import type { Socket } from 'net';
 import { lastValueFrom, Observable, of } from 'rxjs';
 
+import type { ServiceStatusLevel } from '@kbn/core/server';
+import { ServiceStatusLevels } from '@kbn/core/server';
 import { coreMock } from '@kbn/core/server/mocks';
 import type { FakeRawRequest } from '@kbn/core-http-server';
 import { httpServerMock, httpServiceMock } from '@kbn/core-http-server-mocks';
@@ -19,6 +22,7 @@ import type { AuditEvent } from '@kbn/security-plugin-types-server';
 import {
   AuditService,
   createLoggingConfig,
+  DROPPED_EVENT_REPORT_INTERVAL,
   filterEvent,
   getForwardedFor,
   RECORD_USAGE_INTERVAL,
@@ -26,6 +30,14 @@ import {
 import { licenseMock } from '../../common/licensing/index.mock';
 import type { ConfigType } from '../config';
 import { ConfigSchema, createConfig } from '../config';
+
+// Only the filesystem calls used by the pre-flight writability probe are mocked; the rest of
+// `fs` keeps its real behavior so unrelated modules (e.g. config path resolution) still work.
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  mkdirSync: jest.fn(),
+  accessSync: jest.fn(),
+}));
 
 jest.useFakeTimers({ legacyFakeTimers: true });
 
@@ -47,12 +59,23 @@ const getSpaceId = jest.fn().mockReturnValue('default');
 const getSID = jest.fn().mockResolvedValue('SESSION_ID');
 const recordAuditLoggingUsage = jest.fn();
 
+// The pre-flight writability probe in `AuditService` touches the filesystem. The fs calls are
+// mocked so tests exercise the resilience logic without writing real files. Defaults to a
+// writable path; failure scenarios override these per test.
+const mkdirSyncMock = mkdirSync as jest.Mock;
+const accessSyncMock = accessSync as jest.Mock;
+
 beforeEach(() => {
   logger.info.mockClear();
+  logger.warn.mockClear();
+  logger.error.mockClear();
   logging.configure.mockClear();
   logger.isLevelEnabled.mockClear().mockReturnValue(true);
   recordAuditLoggingUsage.mockClear();
   http.registerOnPostAuth.mockClear();
+
+  mkdirSyncMock.mockReset().mockReturnValue(undefined);
+  accessSyncMock.mockReset().mockReturnValue(undefined);
 });
 
 describe('#setup', () => {
@@ -487,6 +510,190 @@ describe('#withoutRequest', () => {
     await auditSetup.withoutRequest.log(undefined);
     expect(logger.info).not.toHaveBeenCalled();
     audit.stop();
+  });
+});
+
+describe('audit logging resilience', () => {
+  const baseParams = () => ({
+    license,
+    logging,
+    http,
+    getCurrentUser,
+    getSpaceId,
+    getSID,
+    recordAuditLoggingUsage,
+  });
+
+  const consoleAuditConfig = {
+    enabled: true,
+    include_saved_object_names: false,
+    appender: {
+      type: 'console' as const,
+      layout: { type: 'pattern' as const },
+    },
+  };
+
+  const throwErofs = () => {
+    const error: NodeJS.ErrnoException = new Error(
+      "EROFS: read-only file system, mkdir '/usr/share/kibana/logs'"
+    );
+    error.code = 'EROFS';
+    throw error;
+  };
+
+  describe('pre-flight validation', () => {
+    it('configures audit logging normally when the file path is writable', () => {
+      const audit = new AuditService(logger);
+      audit.setup({ ...baseParams(), config });
+
+      expect(mkdirSyncMock).toHaveBeenCalled();
+      expect(logging.configure).toHaveBeenCalledWith(expect.any(Observable));
+      expect(audit.auditStatus$.getValue().level).toBe(ServiceStatusLevels.available);
+      audit.stop();
+    });
+
+    it('enters degraded state when the file path is not writable', () => {
+      mkdirSyncMock.mockImplementation(throwErofs);
+
+      const audit = new AuditService(logger);
+      audit.setup({ ...baseParams(), config });
+
+      expect(audit.auditStatus$.getValue().level).toBe(ServiceStatusLevels.degraded);
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Audit logging is enabled but Kibana was unable to write an audit event'
+        )
+      );
+      audit.stop();
+    });
+
+    it('drops and counts events when degraded after a failed pre-flight check', async () => {
+      mkdirSyncMock.mockImplementation(throwErofs);
+
+      const audit = new AuditService(logger);
+      const auditSetup = audit.setup({ ...baseParams(), config });
+
+      await auditSetup.withoutRequest.log({ message: 'MESSAGE', event: { action: 'ACTION' } });
+
+      expect(logger.info).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(DROPPED_EVENT_REPORT_INTERVAL);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('1 audit events dropped in the last 5 minutes')
+      );
+      audit.stop();
+    });
+
+    it('skips validation for console appenders', () => {
+      const audit = new AuditService(logger);
+      audit.setup({ ...baseParams(), config: consoleAuditConfig });
+
+      expect(mkdirSyncMock).not.toHaveBeenCalled();
+      expect(audit.auditStatus$.getValue().level).toBe(ServiceStatusLevels.available);
+      audit.stop();
+    });
+
+    it('skips validation when audit logging is disabled', () => {
+      const audit = new AuditService(logger);
+      audit.setup({
+        ...baseParams(),
+        config: { enabled: false, include_saved_object_names: false, appender: undefined },
+      });
+
+      expect(mkdirSyncMock).not.toHaveBeenCalled();
+      expect(audit.auditStatus$.getValue().level).toBe(ServiceStatusLevels.available);
+      audit.stop();
+    });
+  });
+
+  describe('runtime error boundary', () => {
+    it('enters degraded state and drops the event when the logger throws', async () => {
+      logger.info.mockImplementationOnce(throwErofs);
+
+      const audit = new AuditService(logger);
+      const auditSetup = audit.setup({ ...baseParams(), config });
+
+      await auditSetup.withoutRequest.log({ message: 'MESSAGE', event: { action: 'ACTION' } });
+
+      expect(logger.info).toHaveBeenCalledTimes(1);
+      expect(audit.auditStatus$.getValue().level).toBe(ServiceStatusLevels.degraded);
+
+      jest.advanceTimersByTime(DROPPED_EVENT_REPORT_INTERVAL);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('1 audit events dropped in the last 5 minutes')
+      );
+      audit.stop();
+    });
+
+    it('drops subsequent events via the fast-path without calling the logger again', async () => {
+      logger.info.mockImplementationOnce(throwErofs);
+
+      const audit = new AuditService(logger);
+      const auditSetup = audit.setup({ ...baseParams(), config });
+
+      await auditSetup.withoutRequest.log({ message: 'ONE', event: { action: 'ACTION' } });
+      await auditSetup.withoutRequest.log({ message: 'TWO', event: { action: 'ACTION' } });
+      await auditSetup.withoutRequest.log({ message: 'THREE', event: { action: 'ACTION' } });
+
+      expect(logger.info).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(DROPPED_EVENT_REPORT_INTERVAL);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('3 audit events dropped in the last 5 minutes')
+      );
+      audit.stop();
+    });
+
+    it('resets the dropped event counter after each periodic report', async () => {
+      logger.info.mockImplementationOnce(throwErofs);
+
+      const audit = new AuditService(logger);
+      const auditSetup = audit.setup({ ...baseParams(), config });
+
+      await auditSetup.withoutRequest.log({ message: 'MESSAGE', event: { action: 'ACTION' } });
+
+      jest.advanceTimersByTime(DROPPED_EVENT_REPORT_INTERVAL);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+
+      logger.warn.mockClear();
+      jest.advanceTimersByTime(DROPPED_EVENT_REPORT_INTERVAL);
+      expect(logger.warn).not.toHaveBeenCalled();
+      audit.stop();
+    });
+  });
+
+  describe('degraded status', () => {
+    it('persists degraded status across multiple log events', async () => {
+      mkdirSyncMock.mockImplementation(throwErofs);
+
+      const audit = new AuditService(logger);
+      const auditSetup = audit.setup({ ...baseParams(), config });
+
+      await auditSetup.withoutRequest.log({ message: 'ONE', event: { action: 'ACTION' } });
+      await auditSetup.withoutRequest.log({ message: 'TWO', event: { action: 'ACTION' } });
+
+      expect(audit.auditStatus$.getValue().level).toBe(ServiceStatusLevels.degraded);
+
+      jest.advanceTimersByTime(DROPPED_EVENT_REPORT_INTERVAL);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('2 audit events dropped in the last 5 minutes')
+      );
+      audit.stop();
+    });
+
+    it('emits degraded status via the auditStatus$ observable', () => {
+      mkdirSyncMock.mockImplementation(throwErofs);
+
+      const audit = new AuditService(logger);
+      const statuses: ServiceStatusLevel[] = [];
+      const subscription = audit.auditStatus$.subscribe((status) => statuses.push(status.level));
+
+      audit.setup({ ...baseParams(), config });
+
+      expect(statuses).toEqual([ServiceStatusLevels.available, ServiceStatusLevels.degraded]);
+      subscription.unsubscribe();
+      audit.stop();
+    });
   });
 });
 
