@@ -489,7 +489,12 @@ export function isRealRequest(request: unknown): request is KibanaRequest | Requ
 }
 
 function isCompleted(request: Request) {
-  return request.raw.res.writableFinished;
+  const { res } = request.raw;
+  // `writableFinished` alone is not a reliable "the response was fully sent" signal: when an
+  // HTTP/2 client destroys the stream mid-request (e.g. RST_STREAM/NGHTTP2_CANCEL), Node's
+  // Http2ServerResponse reports `writableFinished: true` even though nothing was written.
+  // `writableEnded` is only true once the server actually ended the response, on both protocols.
+  return res.writableFinished && res.writableEnded;
 }
 
 /**

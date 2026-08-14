@@ -8,6 +8,8 @@
  */
 
 import type { Server } from 'http';
+import http2 from 'http2';
+import { setTimeout as timer } from 'timers/promises';
 import supertest from 'supertest';
 import { of } from 'rxjs';
 import { KBN_CERT_PATH, KBN_KEY_PATH } from '@kbn/dev-utils';
@@ -239,4 +241,106 @@ describe('Http2 - Smoke tests', () => {
       });
     });
   });
+
+  describe('request events', () => {
+    let handlerEntered: Deferred<void>;
+    let releaseHandler: Deferred<void>;
+    let abortedEmitted: Deferred<void>;
+    let abortedSpy: jest.Mock;
+    let completedSpy: jest.Mock;
+
+    beforeEach(async () => {
+      handlerEntered = createDeferred<void>();
+      releaseHandler = createDeferred<void>();
+      abortedEmitted = createDeferred<void>();
+      abortedSpy = jest.fn(() => abortedEmitted.resolve());
+      completedSpy = jest.fn();
+
+      const { registerRouter, server: innerServer } = await server.setup({ config$: of(config) });
+      innerServerListener = innerServer.listener;
+
+      const router = new Router('', logger, enhanceWithContext, {
+        env,
+        versionedRouterOptions: {
+          defaultHandlerResolutionStrategy: 'oldest',
+        },
+      });
+
+      router.get(
+        {
+          path: '/parked',
+          validate: false,
+          security: { authz: { enabled: false, reason: '' } },
+        },
+        async (context, req, res) => {
+          req.events.aborted$.subscribe({ next: abortedSpy });
+          req.events.completed$.subscribe({ next: completedSpy });
+          handlerEntered.resolve();
+          await releaseHandler.promise;
+          return res.ok({ body: 'ok' });
+        }
+      );
+
+      registerRouter(router);
+
+      await server.start();
+    });
+
+    afterEach(() => {
+      releaseHandler.resolve();
+    });
+
+    it('emits aborted$ when the client resets the stream while the request is pending', async () => {
+      const session = http2.connect(`https://127.0.0.1:${config.port}`, {
+        rejectUnauthorized: false,
+      });
+      session.on('error', () => {});
+      try {
+        const stream = session.request({ ':path': '/parked', ':method': 'GET' });
+        stream.on('error', () => {});
+        stream.end();
+
+        await handlerEntered.promise;
+        stream.close(http2.constants.NGHTTP2_CANCEL);
+
+        const emitted = await Promise.race([
+          abortedEmitted.promise.then(() => true),
+          timer(5000, false, { ref: false }),
+        ]);
+        expect(emitted).toBe(true);
+        expect(abortedSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        session.destroy();
+      }
+    });
+
+    it('emits completed$ but not aborted$ when the request completes', async () => {
+      releaseHandler.resolve();
+
+      const response = await supertest(innerServerListener).get('/parked').http2();
+      expect(response.status).toBe(200);
+
+      // wait for the response 'close' event to be delivered to subscribers
+      const start = performance.now();
+      while (completedSpy.mock.calls.length === 0 && performance.now() - start < 5000) {
+        await timer(10);
+      }
+
+      expect(completedSpy).toHaveBeenCalledTimes(1);
+      expect(abortedSpy).not.toHaveBeenCalled();
+    });
+  });
 });
+
+interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+}
+
+function createDeferred<T = void>(): Deferred<T> {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
