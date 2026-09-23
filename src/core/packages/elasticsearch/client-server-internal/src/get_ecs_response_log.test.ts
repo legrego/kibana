@@ -109,6 +109,20 @@ describe('getEcsResponseLog', () => {
       `);
     });
 
+    test.each([
+      'x-client-authentication',
+      'es-secondary-x-client-authentication',
+      'x-kbn-uiam-internal-caller-attestation',
+    ])('redacts the %s header by default', (header) => {
+      const event = createResponseEvent({
+        requestParams: { headers: { [header]: 'ae3fda37-xxx', 'user-agent': 'world' } },
+        response: { headers: { 'content-length': '123' } },
+      });
+      const log = getEcsResponseLog(event);
+      // @ts-expect-error ECS custom field
+      expect(log.http.request.headers[header]).toBe('[REDACTED]');
+    });
+
     test('does not mutate original headers', () => {
       const reqHeaders = { a: 'foo', b: ['hello', 'world'] };
       const resHeaders = { c: 'bar' };

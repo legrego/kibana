@@ -257,6 +257,19 @@ describe('getEcsResponseLog', () => {
       `);
     });
 
+    test.each(['x-client-authentication', 'es-secondary-x-client-authentication'])(
+      'redacts the %s header by default',
+      (header) => {
+        const req = createMockHapiRequest({
+          headers: { [header]: 'ae3fda37-xxx', 'user-agent': 'world' },
+          response: { headers: { 'content-length': '123' } },
+        });
+        const result = getEcsResponseLog(req, logger);
+        // @ts-expect-error ECS custom field
+        expect(result.meta.http.request.headers[header]).toBe('[REDACTED]');
+      }
+    );
+
     test('does not mutate original headers', () => {
       const reqHeaders = { a: 'foo', b: ['hello', 'world'] };
       const resHeaders = { headers: { c: 'bar' } };

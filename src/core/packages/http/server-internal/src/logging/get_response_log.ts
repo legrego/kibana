@@ -25,6 +25,10 @@ const FORBIDDEN_HEADERS = [
   'x-elastic-app-auth',
   'es-client-authentication',
   UIAM_INTERNAL_CALLER_ATTESTATION_HEADER,
+  // The UIAM shared secret. Distinct from `es-client-authentication` above, which is
+  // Elasticsearch's own client authentication.
+  'x-client-authentication',
+  'es-secondary-x-client-authentication',
 ];
 const REDACTED_HEADER_TEXT = '[REDACTED]';
 

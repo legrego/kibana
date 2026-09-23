@@ -10,6 +10,9 @@
 import { type IncomingHttpHeaders } from 'http';
 import { type DiagnosticResult } from '@elastic/elasticsearch';
 import { type LogMeta } from '@kbn/logging';
+import { UIAM_INTERNAL_CALLER_ATTESTATION_HEADER } from '@kbn/core-security-server';
+
+import { ES_CLIENT_AUTHENTICATION_HEADER, ES_SECONDARY_CLIENT_AUTH_HEADER } from './headers';
 
 // If you are updating these, consider whether they should also be updated in the
 // http service `getResponseLog`
@@ -19,6 +22,11 @@ const FORBIDDEN_HEADERS = [
   'set-cookie',
   'x-elastic-app-auth',
   'es-client-authentication',
+  // The UIAM shared secret and the attestation derived from it. Distinct from
+  // `es-client-authentication` above, which is Elasticsearch's own client authentication.
+  ES_CLIENT_AUTHENTICATION_HEADER,
+  ES_SECONDARY_CLIENT_AUTH_HEADER,
+  UIAM_INTERNAL_CALLER_ATTESTATION_HEADER,
 ];
 const REDACTED_HEADER_TEXT = '[REDACTED]';
 
